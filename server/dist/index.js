@@ -2,6 +2,7 @@
 
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 require("regenerator-runtime");
+var _path = _interopRequireDefault(require("path"));
 var _validatePhoneNumber = _interopRequireDefault(require("./services/payoor/validatePhoneNumber"));
 var _generateJWT = _interopRequireDefault(require("./services/payoor/generateJWT"));
 var _saveMessage = _interopRequireDefault(require("./services/payoor/saveMessage"));
@@ -23,8 +24,11 @@ var io = require('socket.io')(server);
 //createService();
 
 var PORT = process.env.PORT || 3000;
+var FLUTTER_WEB_APP = _path["default"].join(__dirname, '../public', 'web');
+app.use(express["static"](FLUTTER_WEB_APP));
 app.get('/', function (req, res) {
-  res.send('<h1>Chat Server</h1>');
+  var indexPath = _path["default"].join(FLUTTER_WEB_APP, 'index.html');
+  res.sendFile(indexPath);
 });
 io.on('connection', function (socket) {
   console.log('A user connected');

@@ -7,6 +7,7 @@ const app = express();
 const server = require('http').createServer(app);
 const mongoose = require('mongoose');
 const io = require('socket.io')(server);
+import path from 'path';
 
 import validatePhoneNumber from './services/payoor/validatePhoneNumber';
 import generateJWT from './services/payoor/generateJWT';
@@ -19,9 +20,13 @@ import createVerificationCheck from './services/twilio/createVerificationCheck';
 //createService();
 
 const PORT = process.env.PORT || 3000;
+const FLUTTER_WEB_APP = path.join(__dirname, '../public', 'web');
+app.use(express.static(FLUTTER_WEB_APP));
 
 app.get('/', (req, res) => {
-  res.send('<h1>Chat Server</h1>');
+  const indexPath = path.join(FLUTTER_WEB_APP, 'index.html');
+
+  res.sendFile(indexPath);
 });
 
 io.on('connection', (socket) => {
