@@ -1,0 +1,900 @@
+.list-header {
+    font-weight: 400;
+    font-size: #{scaleValue(80)};
+}
+
+.list-header-backarrow {
+    margin-right: #{scaleValue(35)};
+    display: flex;
+    align-items: center;
+
+    & svg {
+        height: #{scaleValue(70)};
+        width: #{scaleValue(70)};
+    }
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: #{scaleValue(100)} 0;
+
+    & h2 {
+        font-size: #{scaleValue(70)};
+        font-weight: 500;
+    }
+
+    & label {}
+}
+
+.button {
+    border: none;
+    outline: none;
+    background: transparent;
+    text-align: center;
+    cursor: pointer;
+
+    &.primary {
+        background: $primary-color;
+        border-radius: $border-radius;
+        width: 100%;
+        color: $white;
+    }
+
+    &.faint {
+        background: rgba($primary-color, .4);
+    }
+
+    &.loading {
+
+        & span {
+            display: inline-block;
+            animation: spin 0.8s linear infinite;
+            border: #{scaleValue(2)} solid $primary-color;
+            border-right: #{scaleValue(2)} solid $white;
+            border-radius: 100%;
+            height: #{scaleValue(16)};
+            width: #{scaleValue(16)};
+            background: transparent;
+            margin: 0 auto;
+
+            @media only screen and (max-width: 768px) {
+                height: #{scaleValue(55)};
+                width: #{scaleValue(55)};
+            }
+        }
+    }
+}
+
+.pill {}
+
+.green-link {
+
+    & a {
+        text-decoration: none;
+        color: $primary-color;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: #{scaleValue(55)};
+    }
+}
+
+.content-padding {
+    padding: #{scaleValue(80)};
+    padding-bottom: #{scaleValue(500)};
+}
+
+.amount-toggle {
+    width: 100%;
+    height: 100%;
+    font-size: #{scaleValue(60)};
+    display: grid;
+    grid-template-columns: .8fr 1.4fr .8fr;
+    overflow: hidden;
+    border-radius: $border-radius;
+    border: 1px solid $grey-2;
+
+    & button {
+        background: $grey-2;
+        font-size: #{scaleValue(70)};
+        font-weight: 300;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+    }
+
+    &-amount {
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: #{scaleValue(45)};
+        font-weight: 400;
+    }
+}
+
+.logo {
+    height: #{scaleValue(200)};
+    width: #{scaleValue(200)};
+    //background: red;
+
+    @media only screen and (max-width: 768px) {
+        height: #{scaleValue(400)};
+        width: #{scaleValue(420)};
+        display: flex;
+        align-items: center;
+    }
+
+    & img {
+        height: 100%;
+        width: 100%;
+        object-fit: contain;
+    }
+}
+
+.mobileheader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: #{scaleValue(100)};
+    background: $white;
+    padding: 0 #{scaleValue(100)};
+    z-index: 2;
+    width: 100vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    @media only screen and (max-width: 320px) {
+        height: #{scaleValue(300)};
+    }
+
+    @media only screen and (max-width: 360px) {
+        height: #{scaleValue(300)};
+    }
+
+    @media only screen and (max-width: 375px) {
+        height: #{scaleValue(300)};
+    }
+
+    @media only screen and (max-width: 414px) {
+        height: #{scaleValue(300)};
+    }
+
+    @media only screen and (max-width: 480px) {
+        height: #{scaleValue(300)};
+    }
+
+    @media only screen and (max-width: 540px) {
+        height: #{scaleValue(300)};
+    }
+
+    @media only screen and (max-width: 600px) {
+        height: #{scaleValue(300)};
+    }
+
+    @media only screen and (max-width: 720px) {
+        height: #{scaleValue(300)};
+    }
+
+    @media only screen and (max-width: 768px) {
+        height: #{scaleValue(300)};
+    }
+
+    &.shop {
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    &.slider {
+        background: transparent;
+    }
+
+    &__leftarea {
+        display: flex;
+        align-items: center;
+    }
+
+    &__logo {
+        height: #{scaleValue(180)};
+        width: #{scaleValue(210)};
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transform: translateX(#{scaleValue(0)});
+
+        @media only screen and (max-width: 320px) {
+            height: #{scaleValue(500)};
+            width: #{scaleValue(500)};
+            transform: translateX(#{scaleValue(-40)});
+        }
+
+        @media only screen and (max-width: 360px) {
+            height: #{scaleValue(500)};
+            width: #{scaleValue(500)};
+            transform: translateX(#{scaleValue(-40)});
+        }
+
+        @media only screen and (max-width: 375px) {
+            height: #{scaleValue(500)};
+            width: #{scaleValue(500)};
+            transform: translateX(#{scaleValue(-40)});
+        }
+
+        @media only screen and (max-width: 414px) {
+            height: #{scaleValue(500)};
+            width: #{scaleValue(500)};
+            transform: translateX(#{scaleValue(-40)});
+        }
+
+        @media only screen and (max-width: 480px) {
+            height: #{scaleValue(500)};
+            width: #{scaleValue(500)};
+            transform: translateX(#{scaleValue(-40)});
+        }
+
+        @media only screen and (max-width: 540px) {
+            height: #{scaleValue(500)};
+            width: #{scaleValue(500)};
+            transform: translateX(#{scaleValue(-40)});
+        }
+
+        @media only screen and (max-width: 600px) {
+            height: #{scaleValue(500)};
+            width: #{scaleValue(500)};
+            transform: translateX(#{scaleValue(-40)});
+        }
+
+        @media only screen and (max-width: 720px) {
+            height: #{scaleValue(500)};
+            width: #{scaleValue(500)};
+            transform: translateX(#{scaleValue(-40)});
+        }
+
+        @media only screen and (max-width: 768px) {
+            height: #{scaleValue(500)};
+            width: #{scaleValue(500)};
+            transform: translateX(#{scaleValue(-40)});
+        }
+
+        & img {
+            object-fit: cover;
+            height: 100%;
+            width: 100%;
+        }
+    }
+
+    &__logowrapper {
+        height: #{scaleValue(60)};
+        width: auto;
+        overflow: hidden;
+
+        @media only screen and (max-width: 320px) {
+            height: #{scaleValue(250)};
+            width: #{scaleValue(500)};
+        }
+
+        @media only screen and (max-width: 360px) {
+            height: #{scaleValue(250)};
+            width: #{scaleValue(500)};
+        }
+
+        @media only screen and (max-width: 375px) {
+            height: #{scaleValue(250)};
+            width: #{scaleValue(500)};
+        }
+
+        @media only screen and (max-width: 414px) {
+            height: #{scaleValue(250)};
+            width: #{scaleValue(500)};
+        }
+
+        @media only screen and (max-width: 480px) {
+            height: #{scaleValue(250)};
+            width: #{scaleValue(500)};
+        }
+
+        @media only screen and (max-width: 540px) {
+            height: #{scaleValue(250)};
+            width: #{scaleValue(500)};
+        }
+
+        @media only screen and (max-width: 600px) {
+            height: #{scaleValue(250)};
+            width: #{scaleValue(500)};
+        }
+
+        @media only screen and (max-width: 720px) {
+            height: #{scaleValue(250)};
+            width: #{scaleValue(500)};
+        }
+
+        @media only screen and (max-width: 768px) {
+            height: #{scaleValue(250)};
+            width: #{scaleValue(500)};
+        }
+    }
+
+    & span {
+
+        &.burger {
+
+            & svg {
+                height: #{scaleValue(50)};
+                width: #{scaleValue(50)};
+
+                @media only screen and (max-width: 320px) {
+                    height: #{scaleValue(120)};
+                    width: #{scaleValue(120)};
+                }
+
+                @media only screen and (max-width: 360px) {
+                    height: #{scaleValue(120)};
+                    width: #{scaleValue(120)};
+                }
+
+                @media only screen and (max-width: 375px) {
+                    height: #{scaleValue(120)};
+                    width: #{scaleValue(120)};
+                }
+
+                @media only screen and (max-width: 414px) {
+                    height: #{scaleValue(120)};
+                    width: #{scaleValue(120)};
+                }
+
+                @media only screen and (max-width: 480px) {
+                    height: #{scaleValue(120)};
+                    width: #{scaleValue(120)};
+                }
+
+                @media only screen and (max-width: 540px) {
+                    height: #{scaleValue(120)};
+                    width: #{scaleValue(120)};
+                }
+
+                @media only screen and (max-width: 600px) {
+                    height: #{scaleValue(120)};
+                    width: #{scaleValue(120)};
+                }
+
+                @media only screen and (max-width: 720px) {
+                    height: #{scaleValue(120)};
+                    width: #{scaleValue(120)};
+                }
+
+                @media only screen and (max-width: 768px) {
+                    height: #{scaleValue(120)};
+                    width: #{scaleValue(120)};
+                }
+            }
+        }
+
+        &.whiteburger {
+
+            & svg {
+                fill: $white;
+            }
+        }
+    }
+}
+
+.desktop {
+    display: inline-block;
+
+    @media only screen and (max-width: 320px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 360px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 375px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 414px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 480px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 540px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 600px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 720px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 768px) {
+        display: none;
+    }
+}
+
+.desktop-block {
+    display: block;
+
+    @media only screen and (max-width: 320px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 360px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 375px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 414px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 480px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 540px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 600px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 720px) {
+        display: none;
+    }
+
+    @media only screen and (max-width: 768px) {
+        display: none;
+    }
+}
+
+.mobile {
+    display: none;
+
+    @media only screen and (max-width: 414px) {
+        display: inline-block;
+    }
+
+    @media only screen and (max-width: 414px) {
+        display: inline-block;
+    }
+
+    @media only screen and (max-width: 320px) {
+        display: inline-block;
+    }
+
+    @media only screen and (max-width: 360px) {
+        display: inline-block;
+    }
+
+    @media only screen and (max-width: 375px) {
+        display: inline-block;
+    }
+
+    @media only screen and (max-width: 414px) {
+        display: inline-block;
+    }
+
+    @media only screen and (max-width: 480px) {
+        display: inline-block;
+    }
+
+    @media only screen and (max-width: 540px) {
+        display: inline-block;
+    }
+
+    @media only screen and (max-width: 600px) {
+        display: inline-block;
+    }
+
+    @media only screen and (max-width: 720px) {
+        display: inline-block;
+    }
+
+    @media only screen and (max-width: 768px) {
+        display: inline-block;
+    }
+}
+
+.form {}
+
+.formbody {
+    background: $white;
+}
+
+.formarea {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(20, 1fr);
+    grid-gap: #{scaleValue(20)};
+    margin-bottom: #{scaleValue(30)};
+
+    @media only screen and (max-width: 768px) {
+        grid-gap: #{scaleValue(60)};
+        margin-bottom: #{scaleValue(100)};
+    }
+
+    &.button-area {
+        margin-top: #{scaleValue(30)};
+    }
+
+    &.withdropdown {
+        z-index: 7;
+    }
+}
+
+
+.flex {
+    display: flex;
+}
+
+.flex-direction-column {
+    flex-direction: column;
+}
+
+.justify-content-center {
+    justify-content: center;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+.inputbox {
+    grid-column: span 10;
+    display: flex;
+    flex-direction: column-reverse;
+    position: relative;
+
+    &.full {
+        grid-column: 1 / span 20;
+    }
+
+    & button {
+        padding: #{scaleValue(20)} #{scaleValue(30)};
+        font-weight: 600;
+        font-size: #{scaleValue(20)};
+        border-radius: #{scaleValue(10)} !important;
+
+        @media only screen and (max-width: 768px) {
+            padding: #{scaleValue(100)} #{scaleValue(30)};
+            font-size: #{scaleValue(60)};
+            border-radius: #{scaleValue(20)} !important;
+        }
+    }
+
+    &__dropdownsvg {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        padding: #{scaleValue(16)};
+        display: flex;
+        align-items: center;
+        height: #{scaleValue(60)};
+        background: transparent;
+        width: 100%;
+        cursor: pointer;
+        padding-top: #{scaleValue(23)};
+
+        @media only screen and (max-width: 768px) {
+            height: #{scaleValue(180)};
+            padding: #{scaleValue(40)};
+        }
+
+        & svg {
+            fill: rgba($svg-color, .7);
+            height: #{scaleValue(18)};
+            width: #{scaleValue(20)};
+
+            @media only screen and (max-width: 768px) {
+                height: #{scaleValue(60)};
+                width: #{scaleValue(60)};
+            }
+        }
+    }
+}
+
+.input__dropdown {
+    background: $white;
+    position: absolute;
+    left: 0;
+    top: #{scaleValue(90)};
+    width: 100%;
+    overflow: scroll;
+    height: #{scaleValue(260)};
+    border-radius: 4px;
+    border: 1px solid rgba($svg-color, .7);
+
+    @media only screen and (max-width: 768px) {
+        height: #{scaleValue(700)};
+        top: #{scaleValue(280)};
+        width: 140%;
+    }
+
+    &--item {
+        position: relative;
+        padding: #{scaleValue(15)} #{scaleValue(20)};
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid rgba($svg-color, .4);
+        font-size: #{scaleValue(13)};
+        cursor: pointer;
+        color: rgba($svg-color, .9);
+
+        @media only screen and (max-width: 768px) {
+            font-size: #{scaleValue(50)};
+            padding: #{scaleValue(50)} #{scaleValue(40)};
+        }
+
+        &:hover {
+            background: rgba($primary-color, .1);
+        }
+
+        &:last-child {
+            border: none
+        }
+    }
+}
+
+.inputbox__label {
+    color: $svg-color;
+    margin-bottom: #{scaleValue(10)};
+    font-weight: 400;
+    font-size: #{scaleValue(15)};
+    transition: all .5s ease;
+
+    @media only screen and (max-width: 768px) {
+        font-size: #{scaleValue(45)};
+        margin-bottom: #{scaleValue(30)};
+    }
+}
+
+.inputbox__input {
+    width: 100%;
+    border-radius: 4px;
+    border: 1px solid $svg-color;
+    background: $white;
+    outline: none;
+    padding: #{scaleValue(20)};
+    transition: all .5s ease;
+
+    @media only screen and (max-width: 768px) {
+        font-size: #{scaleValue(65)};
+    }
+
+    &.dropdown {
+        padding: #{scaleValue(20)} #{scaleValue(35)};
+
+        @media only screen and (max-width: 768px) {
+            padding: #{scaleValue(20)} #{scaleValue(100)};
+        }
+    }
+
+    @media only screen and (max-width: 768px) {
+        height: #{scaleValue(200)};
+        padding: #{scaleValue(60)};
+    }
+
+    &:focus {
+        border: 1px solid $primary-color;
+
+        &+label {
+            color: $primary-color;
+        }
+    }
+
+    &.blank {
+        color: $white;
+    }
+
+    &--viewpassword {
+        position: absolute;
+        right: #{scaleValue(20)};
+        bottom: #{scaleValue(20)};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 2;
+
+        @media only screen and (max-width: 768px) {
+            right: #{scaleValue(60)};
+            bottom: #{scaleValue(60)};
+        }
+
+        & span.line {
+            background: $svg-color;
+            display: inline-block;
+            width: #{scaleValue(20)};
+            height: #{scaleValue(1)};
+            transition: all .1s ease;
+            transform: translateX(#{scaleValue(16.6)});
+            opacity: 0;
+
+            @media only screen and (max-width: 768px) {
+                width: #{scaleValue(80)};
+                transform: translateX(#{scaleValue(68)});
+            }
+
+            &.passwordvisible {
+                opacity: 1;
+            }
+        }
+
+        & svg {
+            height: #{scaleValue(15)};
+            width: #{scaleValue(15)};
+            fill: $svg-color;
+
+            @media only screen and (max-width: 768px) {
+                height: #{scaleValue(60)};
+                width: #{scaleValue(60)};
+            }
+        }
+    }
+}
+
+.inputbox__options {
+    position: absolute;
+}
+
+.greencolor {
+    color: $primary-color !important;
+}
+
+.waitlist-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: #{scaleValue(20)};
+}
+
+.waitlist-option {
+    border-radius: #{scaleValue(10)};
+    color: $svg-color;
+    padding: #{scaleValue(20)};
+    border: 1px solid $svg-color;
+    cursor: pointer;
+
+    @media only screen and (max-width: 768px) {
+        height: #{scaleValue(180)};
+        padding: 0 #{scaleValue(50)};
+        margin-bottom: #{scaleValue(60)};
+        font-size: #{scaleValue(44)};
+        display: flex;
+        align-items: center;
+    }
+
+    &.greencolor {
+        color: $primary-color;
+        border: 1px solid $primary-color;
+    }
+}
+
+.highz {
+    z-index: 20;
+}
+
+.fixed-header-white {
+    background: $white;
+    width: 100vw;
+    height: #{scaleValue(300)};
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 20;
+}
+
+.desktop-social-svg {
+    height: #{scaleValue(23)};
+    width: #{scaleValue(23)};
+    cursor: pointer;
+    margin-left: #{scaleValue(50)};
+
+
+    & svg {
+        height: 100%;
+        width: 100%;
+        fill: $white;
+    }
+
+    &.green {
+
+        & svg {
+            fill: $primary-color;
+        }
+    }
+}
+
+.errortext {
+    color: $red !important;
+}
+
+.errorinput {
+    border: 1px solid $red !important;
+}
+
+input.blank {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    opacity: 0;
+}
+
+.loadinganimation {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    background: $primary-color;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all .5s ease;
+
+    &.pageloaded {
+        z-index: -1;
+        opacity: 0;
+    }
+
+    &__box {
+        display: flex;
+        flex-direction: column;
+
+        & span {
+            display: flex;
+            transition: all .5s ease;
+
+            & img {
+                height: 100%;
+                width: 100%;
+                object-fit: cover;
+            }
+        }
+
+        &--smile {
+            height: #{scaleValue(150)};
+            width: #{scaleValue(150)};
+
+            @media only screen and (max-width: 768px) {
+                height: #{scaleValue(530)};
+                width: #{scaleValue(530)};
+            }
+        }
+
+        &--dot {
+            height: #{scaleValue(100)};
+            width: #{scaleValue(100)};
+
+            animation: translateYXAnimation 3s infinite;
+
+            @media only screen and (max-width: 768px) {
+                height: #{scaleValue(400)};
+                width: #{scaleValue(400)};
+                animation: translateYXAnimationMobile 3s infinite;
+            }
+        }
+    }
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.underline {
+    text-decoration: underline;
+}

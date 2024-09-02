@@ -1,0 +1,61 @@
+@keyframes slideFromTop {
+    0% {
+        transform: translateY(#{scaleValue(-150)});
+        opacity: 0;
+
+        @media only screen and (max-width: 768px) {
+            transform: translateY(#{scaleValue(-350)});
+        }
+    }
+    100% {
+        transform: translateY(#{scaleValue(-100)});
+        opacity: 1;
+
+        @media only screen and (max-width: 768px) {
+            transform: translateY(#{scaleValue(-300)});
+        }
+    }
+}
+
+@keyframes opacityIn {
+    0% {
+        background: rgba(0, 0, 0, 0);
+    }
+    100% {
+        background: rgba(0, 0, 0, .4);
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes translateYXAnimation {
+    0%, 100% {
+      transform: translateY(scaleValue(-75)) translateX(scaleValue(30));
+    }
+    
+    50% {
+      transform: translateY(scaleValue(-120)) translateX(scaleValue(30));
+    }
+}
+
+@keyframes translateYXAnimationMobile {
+    0%, 100% {
+        transform: translateY(scaleValue(-264)) translateX(scaleValue(80));
+    }
+    
+    50% {
+        transform: translateY(scaleValue(-440)) translateX(scaleValue(80));
+    }
+}

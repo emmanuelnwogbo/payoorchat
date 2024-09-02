@@ -1,0 +1,14 @@
+.font-600 {
+    font-weight: 600;
+}
+.font-500 {
+    font-weight: 500;
+}
+
+.fontSize12 {
+    font-size: #{scaleValue(12)};
+
+    @media only screen and (max-width: 768px) {
+        font-size: #{scaleValue(45)};
+    }
+}

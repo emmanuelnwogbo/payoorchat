@@ -1,0 +1,38 @@
+.header {
+    display: grid;
+    color: $white;
+    grid-template-columns: repeat(3, 1fr);
+    height: #{scaleValue(70)};
+    background: $primary-color;
+
+    &--area {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    &--logo {
+        height: #{scaleValue(180)};
+        width: #{scaleValue(180)};
+        //background: red;
+
+        & img {
+            object-fit: cover;
+            height: 100%;
+            width: 100%;
+        }
+    }
+
+    &--menu {
+        display: flex;
+        justify-content: space-between;
+        //background: red;
+        transform: translateY(#{scaleValue(30)});
+    }
+
+    &--menuitem {
+        cursor: pointer;
+        font-size: #{scaleValue(17)};
+    }
+
+    &--profilearea {}
+}

@@ -1,0 +1,22 @@
+@mixin respond-to($breakpoint) {
+    $breakpoints: (
+        "small": 320px,
+        "medium": 360px,
+        "large": 375px,
+        "xlarge": 414px,
+        "xxlarge": 480px,
+        "xxxlarge": 540px,
+        "mobile-landscape": 600px,
+        "tablet-small": 720px,
+        "tablet-large": 768px
+    );
+
+    @if map-has-key($breakpoints, $breakpoint) {
+        $width: map-get($breakpoints, $breakpoint);
+        @media only screen and (max-width: $width) {
+            @content;
+        }
+    } @else {
+        @warn "No breakpoint found for `#{$breakpoint}`. Available breakpoints are: #{map-keys($breakpoints)}.";
+    }
+}

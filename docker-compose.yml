@@ -20,9 +20,16 @@ services:
     volumes:
       - /data-vol:/data/payoordb
 
-  payoorapi:
+  payoorchat:
     container_name: payoorchat
     restart: always
-    build: ./server
+    build: ./chat
     environment:
       - PORT=8080
+
+  payoorwl:
+    container_name: payoorwl
+    restart: always
+    build: ./waitlist
+    environment:
+      - PORT=8081
