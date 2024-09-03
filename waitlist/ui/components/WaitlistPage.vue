@@ -533,19 +533,10 @@ export default {
       return emailRegex.test(input);
     },
     async submit() {
-      const currentURL = window.location.href.replace(/\/$/, "");
+      //const currentURL = window.location.href.replace(/\/$/, "");
       let url;
 
-      if (
-        currentURL === "http://localhost:3000" ||
-        currentURL === "http://localhost:3000/"
-      ) {
-        url = "http://localhost:3031";
-      } else if (currentURL.contains("payoor.shop")) {
-        url = `https://waitlist.payoor.shop`;
-      } else {
-        url = "http://localhost:3031";
-      }
+      url = `https://waitlist.payoor.shop`;
 
       const {
         firstname,
