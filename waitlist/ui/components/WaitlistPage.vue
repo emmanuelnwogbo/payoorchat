@@ -541,11 +541,8 @@ export default {
         currentURL === "http://localhost:3000/"
       ) {
         url = "http://localhost:3031";
-      } else if (
-        currentURL === "https://waitlist.payoor.shop" ||
-        currentURL === "https://waitlist.payoor.shop/"
-      ) {
-        url = `${window.location.href}`.replace(/\/$/, "");
+      } else if (currentURL.contains("payoor.shop")) {
+        url = `https://waitlist.payoor.shop`;
       } else {
         url = "http://localhost:3031";
       }
