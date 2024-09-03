@@ -564,7 +564,7 @@ export default {
       try {
         this.submitting = true;
 
-        const response = await fetch(`${url}/waitlist`, {
+        const response = await fetch(`${url}/api/waitlist`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
