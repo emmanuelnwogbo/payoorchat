@@ -1,15 +1,7 @@
 import User from '../../models/user';
 import Message from '../../models/message';
 
-function formatPhoneNumber(phoneNumber) {
-    if (phoneNumber.startsWith('0')) {
-        return '+234' + phoneNumber.slice(1);
-    } else if (phoneNumber.startsWith('+234')) {
-        return phoneNumber;
-    } else {
-        return '+234' + phoneNumber;
-    }
-}
+import getPayloadFromToken from './getPayloadFromToken';
 
 async function saveMessage(msg) {
     try {
@@ -17,30 +9,35 @@ async function saveMessage(msg) {
             jwt,
             userPhoneNumber,
             message,
-            isSender,
+            isUser,
             timestamp,
-            isLoggedIn
+            isLoggedIn,
+            isAdmin
         } = msg;
 
-        const userItem = await User.findOne({ phoneNumber: formatPhoneNumber(userPhoneNumber) });
+        let newMessage;
 
-        if (userItem) {
-            const specificToken = userItem.getToken(jwt);
+        if (isAdmin) {
 
-            if (specificToken) {
-                const newMsg = new Message({
-                    message,
-                    userPhoneNumber,
-                    isSender,
-                    timestamp,
-                    isLoggedIn,
-                });
-
-                await newMsg.save();
-            }
         } else {
-            console.log('User not found.');
+            const payload = getPayloadFromToken(jwt);
+
+            const validUser = await User.findOne({ _id: payload._id });
+
+            newMessage = new Message({
+                user: validUser._id,
+                content: message,
+                userPhoneNumber: userPhoneNumber,
+                isLoggedIn: isLoggedIn,
+                isUser: isUser,
+                timestamp: timestamp,
+                isAdmin: !isUser
+            });
         }
+
+        console.log(newMessage);
+
+        await newMessage.save();
     } catch (error) {
         console, log(error);
     }

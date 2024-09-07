@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 // Define the schema for the Message model
 const messageSchema = new mongoose.Schema({
-  message: {
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  content: {
     type: String,
     required: true
   },
@@ -10,8 +11,13 @@ const messageSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  isSender: {
+  isUser: {
     type: Boolean,
+    required: true
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false,
     required: true
   },
   isLoggedIn: {
@@ -25,7 +31,6 @@ const messageSchema = new mongoose.Schema({
   },
 });
 
-// Create a Mongoose model named 'Message' using the schema
 const Message = mongoose.model('Message', messageSchema);
 
 module.exports = Message;

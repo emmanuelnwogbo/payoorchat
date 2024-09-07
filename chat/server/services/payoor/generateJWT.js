@@ -21,7 +21,7 @@ async function generateJWT(phoneNumber) {
             isNewUser
         };
 
-        const token = jwt.sign(user_payload, process.env.SECRET_KEY, { expiresIn: '1h' });
+        const token = jwt.sign(user_payload, process.env.SECRET_KEY, { expiresIn: '24h' });
 
         user.tokens.push({ token });
         await user.save();

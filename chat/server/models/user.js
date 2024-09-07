@@ -4,8 +4,7 @@ const userSchema = new mongoose.Schema({
     username: {
         type: String,
         trim: true,
-        minlength: 3,
-        sparse: true  // Allows null values while still maintaining uniqueness
+        default: ""
     },
     phoneNumber: {
         type: String,
@@ -28,6 +27,10 @@ const userSchema = new mongoose.Schema({
     roles: {
         type: [String],
         default: ['user']
+    },
+    isOnline: {
+        type: Boolean,
+        default: false
     },
     tokens: [{
         token: {
