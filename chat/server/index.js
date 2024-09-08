@@ -16,6 +16,7 @@ const io = require('socket.io')(server, {
     methods: ["GET", "POST"]
   }
 });
+
 import path from 'path';
 import cors from 'cors';
 
@@ -34,13 +35,16 @@ import conversationRoute from './routes/conversationRoute';
 import createVerification from './services/twilio/createVerification';
 import createVerificationCheck from './services/twilio/createVerificationCheck';
 
+import createVerificationTest from './services/payoor/test/createVerification';
+import createVerificationCheckTest from './services/payoor/test/createVerificationCheck';
+
 //import createService from './services/twilio/createService';
 //createService();
 
 const corsOptions = {
   origin: [
     'http://localhost:3000',
-    'http://localhost:61499',
+    'http://localhost:56325',
     'https://chat.payoor.shop',
   ],
   optionsSuccessStatus: 200,
@@ -73,7 +77,7 @@ io.on('connection', (socket) => {
     const usernum = validatePhoneNumber(messageValue);
 
     if (usernum?.isValid && usernum.country === 'NG') {
-      const pending = await createVerification(usernum.formattedNumber);
+      const pending = await createVerificationTest(usernum.formattedNumber);
 
       if (pending === 'pending') {
         socket.emit('pendingotp', "I sent you an OTP, please check your SMS and send it back to confirm you own this number");
@@ -93,7 +97,7 @@ io.on('connection', (socket) => {
     const usernum = validatePhoneNumber(userPhoneNumber);
 
     if (usernum?.isValid && usernum.country === 'NG') {
-      const result = await createVerificationCheck(messageValue, usernum.formattedNumber);//{ status: "approved", number: usernum.formattedNumber }; // Consider awaiting actual verification
+      const result = await createVerificationCheckTest(messageValue, usernum.formattedNumber);//{ status: "approved", number: usernum.formattedNumber }; // Consider awaiting actual verification
       const phoneNumber = `${result.number}`;
       if (result.status === "approved") {
         const { token, user, isNewUser } = await generateJWT(phoneNumber);
