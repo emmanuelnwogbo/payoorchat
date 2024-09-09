@@ -9,6 +9,8 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/data/certs:/etc/nginx/certs
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro
+      
 
   payoordb:
     container_name: payoordb
