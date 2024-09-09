@@ -31,7 +31,7 @@ var server = require('http').createServer(app);
 var mongoose = require('mongoose');
 var io = require('socket.io')(server, {
   cors: {
-    origin: ["http://localhost:3000", 'https://dfa1-149-22-81-214.ngrok-free.app', "https://chat.payoor.shop", "http://localhost:61593"],
+    origin: ["http://localhost:3000", 'https://dfa1-149-22-81-214.ngrok-free.app', "https://chat.payoor.shop", "http://localhost:64274"],
     methods: ["GET", "POST"]
   }
 });
@@ -39,7 +39,7 @@ var io = require('socket.io')(server, {
 //createService();
 
 var corsOptions = {
-  origin: ['http://localhost:3000', 'https://dfa1-149-22-81-214.ngrok-free.app', 'https://chat.payoor.shop', "http://localhost:61593"],
+  origin: ['http://localhost:3000', 'https://dfa1-149-22-81-214.ngrok-free.app', 'https://chat.payoor.shop', "http://localhost:64274"],
   optionsSuccessStatus: 200
 };
 app.use((0, _cors["default"])(corsOptions));
@@ -277,16 +277,17 @@ io.on('connection', function (socket) {
       return _regeneratorRuntime().wrap(function _callee5$(_context5) {
         while (1) switch (_context5.prev = _context5.next) {
           case 0:
+            console.log('roomid:', roomid, 'roomid');
             room = (0, _sanitizeId["default"])("".concat(roomid));
-            _context5.next = 3;
+            _context5.next = 4;
             return (0, _createRoom["default"])(room);
-          case 3:
+          case 4:
             currentroom = _context5.sent;
             socket.join(currentroom.roomId);
             if (socket.rooms.has(room)) {
               console.log('admin is online:', room);
             }
-          case 6:
+          case 7:
           case "end":
             return _context5.stop();
         }
@@ -302,16 +303,19 @@ io.on('connection', function (socket) {
       return _regeneratorRuntime().wrap(function _callee6$(_context6) {
         while (1) switch (_context6.prev = _context6.next) {
           case 0:
-            console.log(adminmsg);
+            //console.log(adminmsg);
             content = adminmsg.content, current_userid = adminmsg.current_userid;
+            console.log();
             room = (0, _sanitizeId["default"])("".concat(current_userid));
-            _context6.next = 5;
+            console.log();
+            _context6.next = 6;
             return (0, _createRoom["default"])(room);
-          case 5:
+          case 6:
             currentroom = _context6.sent;
-            console.log('check admin message:', currentroom);
-            io.to(currentroom.roomId).emit('chat_message_from_payoor', content);
-          case 8:
+            console.log('check admin message:', 'room', room, content, currentroom.roomId, current_userid);
+            socket.join(currentroom.roomId);
+            io.to(currentroom.roomId).emit('chatMessageFromPayoor', content);
+          case 10:
           case "end":
             return _context6.stop();
         }
@@ -342,14 +346,15 @@ io.on('connection', function (socket) {
           case 11:
             currentroom = _context7.sent;
             console.log('currentroom:', currentroom);
+            socket.join(currentroom.roomId);
             io.to(currentroom.roomId).emit('chat_message_from_user', {
               message: message,
               _id: _id,
               username: username
             });
-            _context7.next = 16;
+            _context7.next = 17;
             return (0, _saveMessage["default"])(usermsg);
-          case 16:
+          case 17:
           case "end":
             return _context7.stop();
         }

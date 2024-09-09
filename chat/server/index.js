@@ -13,7 +13,7 @@ const io = require('socket.io')(server, {
       "http://localhost:3000",
       'https://dfa1-149-22-81-214.ngrok-free.app',
       "https://chat.payoor.shop",
-      "http://localhost:61593",
+      "http://localhost:64274",
     ],
     methods: ["GET", "POST"]
   }
@@ -48,7 +48,7 @@ const corsOptions = {
     'http://localhost:3000',
     'https://dfa1-149-22-81-214.ngrok-free.app',
     'https://chat.payoor.shop',
-    "http://localhost:61593",
+    "http://localhost:64274",
   ],
   optionsSuccessStatus: 200,
 };
@@ -201,6 +201,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on("isAdminJoinRoom", async (roomid) => {
+    console.log('roomid:', roomid, 'roomid')
     const room = sanitizeId(`${roomid}`);
 
     const currentroom = await createRoom(room);
@@ -213,16 +214,22 @@ io.on('connection', (socket) => {
   });
 
   socket.on("isAdminInput", async (adminmsg) => {
-    console.log(adminmsg);
+    //console.log(adminmsg);
     const { content, current_userid } = adminmsg;
+
+    console.log();
 
     const room = sanitizeId(`${current_userid}`);
 
+    console.log()
+
     const currentroom = await createRoom(room);
 
-    console.log('check admin message:', currentroom);
+    console.log('check admin message:', 'room', room, content, currentroom.roomId, current_userid);
 
-    io.to(currentroom.roomId).emit('chat_message_from_payoor', content);
+    socket.join(currentroom.roomId);
+
+    io.to(currentroom.roomId).emit('chatMessageFromPayoor', content);
   });
 
   socket.on("isLoggedInInput", async (usermsg) => {
@@ -236,6 +243,8 @@ io.on('connection', (socket) => {
     const currentroom = await createRoom(room);
 
     console.log('currentroom:', currentroom)
+
+    socket.join(currentroom.roomId);
 
     io.to(currentroom.roomId).emit('chat_message_from_user', { message, _id, username });
 
