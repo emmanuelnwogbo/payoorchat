@@ -1,17 +1,13 @@
 import Room from '../../models/room';
 
-async function createRoom(roomId) {
-    let room = await Room.findOne({ roomId });
+async function createRoom(userid, socketid, userphonenumber) {
+    const room = new Room({
+        userid,
+        socketid,
+        userphonenumber
+    });
 
-    if (!room) {
-        room = new Room({
-            roomId
-        });
-
-        await room.save();
-
-        return room;
-    }
+    await room.save();
 
     return room;
 }

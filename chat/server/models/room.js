@@ -1,10 +1,19 @@
 const mongoose = require('mongoose');
 
 const roomSchema = new mongoose.Schema({
-    roomId: {
+    userid: {
+        type: String,
+        trim: true,
+        default: ""
+    },
+    userphonenumber: {
+        type: String,
+        trim: true,
+        default: ""
+    },
+    socketid: {
         type: String,
         required: true,
-        unique: true,
         trim: true
     },
     created_at: { type: Date, default: Date.now },

@@ -30,6 +30,7 @@ import getValidUser from './services/payoor/getValidUser';
 import sanitizeId from './services/payoor/sanitizeId';
 import toggleOnlineState from './services/payoor/toggleOnlineState';
 import createRoom from './services/payoor/createRoom';
+import joinRoom from './services/payoor/joinRoom';
 
 import userRoute from './routes/userRoute';
 import conversationRoute from './routes/conversationRoute';
@@ -70,47 +71,69 @@ app.get('/', (req, res) => {
   res.sendFile(indexPath);
 });
 
-io.on('connection', (socket) => {
+io.on('connection', socket => {
+  let room;
 
+  socket.on("initConnect", async (jwtData) => {
+    const { jwt } = jwtData;
 
-  //console.log('A user connected:', currentSocketId);
+    if (jwt === null) {
+      room = socket.id;
+      socket.join(room);
+
+      const message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
+
+      io.to(room).emit("unauthenticated", message);
+    } else if (jwt !== null) {
+      const user = await getValidUser(jwt);
+
+      if (user === null) {
+        room = socket.id;
+        socket.join(room);
+
+        const message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
+
+        io.to(room).emit("unauthenticated", message);
+      } else {
+        const { username, phoneNumber, _id } = await getValidUser(jwt);
+        const { socketid } = await createRoom(_id, socket.id, phoneNumber);
+
+        console.log('socketid', socketid);
+
+        room = socketid;
+
+        socket.join(room);
+
+        if (!username) {
+          io.to(room).emit('getusername', `Looks like you still haven't told me your name`);
+        } else {
+          io.to(room).emit('loggedIn', { username, phoneNumber, jwt });
+          io.to(room).emit('authenticated', `Greetings ${username}, I'm here to accept your orders`);
+        }
+      }
+
+    }
+  });
 
   socket.on("isPhonenumberInput", async (usermsg) => {
     const messageValue = usermsg.message;
-
     const usernum = validatePhoneNumber(messageValue);
 
-    const currentSocketId = socket.id;
-
-    const room = sanitizeId(`${currentSocketId}`);
-
-    const currentroom = await createRoom(room);
-
-    socket.join(currentroom);
 
     if (usernum?.isValid && usernum.country === 'NG') {
       const pending = await createVerificationTest(usernum.formattedNumber);
 
       if (pending === 'pending') {
 
-        io.to(currentroom).emit('pendingotp', "I sent you an OTP, please check your SMS and send it back to confirm you own this number");
-        io.to(currentroom).emit('keepusernumberforotp', messageValue);
+        io.to(room).emit('pendingotp', "I sent you an OTP, please check your SMS and send it back to confirm you own this number");
+        io.to(room).emit('keepusernumberforotp', messageValue);
       }
     } else {
-      // Optionally, handle invalid phone numbers or non-NG numbers
-      socket.emit('error', 'Invalid phone number or unsupported country.');
+      io.to(room).emit('error', 'Invalid phone number or unsupported country.');
     }
   });
 
   socket.on("isOtpInput", async (usermsg) => {
-    const currentSocketId = socket.id;
-
-    const room = sanitizeId(`${currentSocketId}`);
-
-    const currentroom = await createRoom(room);
-
-    socket.join(currentroom);
-
     const messageValue = usermsg.message;
     const userPhoneNumber = (usermsg.userPhoneNumber || '').trim();
 
@@ -122,16 +145,16 @@ io.on('connection', (socket) => {
       if (result.status === "approved") {
         const { token, user, isNewUser } = await generateJWT(phoneNumber);
 
-        io.to(currentroom).emit('saveJWT', token);
+        io.to(room).emit('saveJWT', token);
 
         if (user.username.length === 0) {
-          io.to(currentroom).emit('receivedotp', `Your number ${result.number} has been saved.\nPlease let us know your name`);
-          io.to(currentroom).emit('getusername');
+          io.to(room).emit('receivedotp', `Your number ${result.number} has been saved.\nPlease let us know your name`);
+          io.to(room).emit('getusername');
         } else {
           const { username, phoneNumber, tokens } = user;
           const latestToken = tokens[tokens.length - 1]?.token; // Use optional chaining
-          io.to(currentroom).emit('receivedotp', `Greetings ${username}, I'm here to accept your orders`);
-          io.to(currentroom).emit('loggedIn', { username, phoneNumber, jwt: latestToken });
+          io.to(room).emit('authenticated', `Greetings ${username}, I'm here to accept your orders`);
+          io.to(room).emit('loggedIn', { username, phoneNumber, jwt: latestToken });
         }
       }
     } else {
@@ -144,119 +167,46 @@ io.on('connection', (socket) => {
     const username = usermsg.message;
     const jwt = usermsg.jwt;
 
-    let currentroom = { roomId: socket.id };
-
     const updatedUser = await saveUserName(username, jwt);
 
     if (updatedUser) {
       const { username, phoneNumber, tokens, _id } = updatedUser;
-      const latestToken = tokens[tokens.length - 1]?.token; // Use optional chaining
+      const latestToken = tokens[tokens.length - 1]?.token;
 
-      const room = sanitizeId(`${_id}`);
-
-      currentroom = await createRoom(room);
-
-      socket.join(currentroom.roomId);
-
-      if (socket.rooms.has(room)) {
-        console.log('user is online:', room);
-      }
-
-      io.to(currentroom.roomId).emit('loggedIn', { username, phoneNumber, jwt: latestToken });
-      io.to(currentroom.roomId).emit('greeting', `Greetings ${username}, I'm here to accept your orders`);
-    } else {
-      // Optionally, handle cases where the user was not updated
-      if (currentroom) {
-        io.to(currentroom.roomId).emit('error', 'Failed to update username.');
-      }
+      io.to(room).emit('loggedIn', { username, phoneNumber, jwt: latestToken });
+      io.to(room).emit('authenticated', `Greetings ${username}, I'm here to accept your orders`);
     }
-  });
-
-  socket.on("isAuthenticated", async (jwt) => {
-    let currentroom = { roomId: socket.id };
-
-    try {
-      const { username, phoneNumber, _id } = await getValidUser(jwt);
-
-      const room = sanitizeId(`${_id}`);
-
-      currentroom = await createRoom(room);
-
-      socket.join(currentroom.roomId);
-
-      if (!username) {
-        io.to(currentroom.roomId).emit('getusername', `Looks like you still haven't told me your name`);
-      } else {
-        io.to(currentroom.roomId).emit('loggedIn', { username, phoneNumber, jwt });
-        io.to(currentroom.roomId).emit('greeting', `Greetings ${username}, I'm here to accept your orders`);
-      }
-
-      if (socket.rooms.has(room)) {
-        console.log('user is online:', room);
-      }
-    } catch (error) {
-      console.error('Error authenticating user:', error);
-      io.to(currentroom.roomId).emit('error', 'Authentication failed. Please try again.');
-    }
-  });
-
-  socket.on("isAdminJoinRoom", async (roomid) => {
-    console.log('roomid:', roomid, 'roomid')
-    const room = sanitizeId(`${roomid}`);
-
-    const currentroom = await createRoom(room);
-
-    socket.join(currentroom.roomId);
-
-    if (socket.rooms.has(room)) {
-      console.log('admin is online:', room);
-    }
-  });
-
-  socket.on("isAdminInput", async (adminmsg) => {
-    //console.log(adminmsg);
-    const { content, current_userid } = adminmsg;
-
-    console.log();
-
-    const room = sanitizeId(`${current_userid}`);
-
-    console.log()
-
-    const currentroom = await createRoom(room);
-
-    console.log('check admin message:', 'room', room, content, currentroom.roomId, current_userid);
-
-    socket.join(currentroom.roomId);
-
-    io.to(currentroom.roomId).emit('chatMessageFromPayoor', content);
   });
 
   socket.on("isLoggedInInput", async (usermsg) => {
     const { jwt, message } = usermsg;
     const { _id, username } = await getValidUser(jwt);
-    console.log('user', _id, usermsg);
-    const room = sanitizeId(`${_id}`);
 
-    console.log('room', room)
+    io.to(room).emit('chat_message_from_user', { message, _id, username });
 
-    const currentroom = await createRoom(room);
+    console.log('room in chat:', room);
 
-    console.log('currentroom:', currentroom)
-
-    socket.join(currentroom.roomId);
-
-    io.to(currentroom.roomId).emit('chat_message_from_user', { message, _id, username });
-
-    await saveMessage(usermsg); // Ensure saveMessage is async if needed
+    await saveMessage(usermsg);
   });
 
-  socket.on('disconnect', () => {
-    //socket.leave(room);
+  socket.on("isAdminJoinRoom", async (userid) => {
+    const { socketid } = await joinRoom(userid);
 
-    //console.log('user left room:', room)
-    console.log('A user disconnected:', socket.id);
+    room = socketid;
+
+    console.log(room);
+
+    socket.join(room);
   });
+
+  socket.on("isAdminInput", async (adminmsg) => {
+    const { content } = adminmsg;
+
+    console.log(room, content)
+
+    io.to(room).emit('chatMessageFromPayoor', content);
+  })
+
 });
 
 mongoose.connect(process.env.MONGO_URL, {

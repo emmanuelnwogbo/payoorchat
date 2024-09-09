@@ -12,6 +12,7 @@ var _getValidUser = _interopRequireDefault(require("./services/payoor/getValidUs
 var _sanitizeId = _interopRequireDefault(require("./services/payoor/sanitizeId"));
 var _toggleOnlineState = _interopRequireDefault(require("./services/payoor/toggleOnlineState"));
 var _createRoom = _interopRequireDefault(require("./services/payoor/createRoom"));
+var _joinRoom = _interopRequireDefault(require("./services/payoor/joinRoom"));
 var _userRoute = _interopRequireDefault(require("./routes/userRoute"));
 var _conversationRoute = _interopRequireDefault(require("./routes/conversationRoute"));
 var _createVerification = _interopRequireDefault(require("./services/twilio/createVerification"));
@@ -54,41 +55,70 @@ app.get('/', function (req, res) {
   res.sendFile(indexPath);
 });
 io.on('connection', function (socket) {
-  //console.log('A user connected:', currentSocketId);
-
-  socket.on("isPhonenumberInput", /*#__PURE__*/function () {
-    var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(usermsg) {
-      var messageValue, usernum, currentSocketId, room, currentroom, pending;
+  var room;
+  socket.on("initConnect", /*#__PURE__*/function () {
+    var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(jwtData) {
+      var jwt, message, user, _message, _yield$getValidUser, username, phoneNumber, _id, _yield$createRoom, socketid;
       return _regeneratorRuntime().wrap(function _callee$(_context) {
         while (1) switch (_context.prev = _context.next) {
           case 0:
-            messageValue = usermsg.message;
-            usernum = (0, _validatePhoneNumber["default"])(messageValue);
-            currentSocketId = socket.id;
-            room = (0, _sanitizeId["default"])("".concat(currentSocketId));
-            _context.next = 6;
-            return (0, _createRoom["default"])(room);
-          case 6:
-            currentroom = _context.sent;
-            socket.join(currentroom);
-            if (!(usernum !== null && usernum !== void 0 && usernum.isValid && usernum.country === 'NG')) {
-              _context.next = 15;
+            jwt = jwtData.jwt;
+            if (!(jwt === null)) {
+              _context.next = 8;
+              break;
+            }
+            room = socket.id;
+            socket.join(room);
+            message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
+            io.to(room).emit("unauthenticated", message);
+            _context.next = 33;
+            break;
+          case 8:
+            if (!(jwt !== null)) {
+              _context.next = 33;
               break;
             }
             _context.next = 11;
-            return (0, _createVerification2["default"])(usernum.formattedNumber);
+            return (0, _getValidUser["default"])(jwt);
           case 11:
-            pending = _context.sent;
-            if (pending === 'pending') {
-              io.to(currentroom).emit('pendingotp', "I sent you an OTP, please check your SMS and send it back to confirm you own this number");
-              io.to(currentroom).emit('keepusernumberforotp', messageValue);
+            user = _context.sent;
+            if (!(user === null)) {
+              _context.next = 19;
+              break;
             }
-            _context.next = 16;
+            room = socket.id;
+            socket.join(room);
+            _message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
+            io.to(room).emit("unauthenticated", _message);
+            _context.next = 33;
             break;
-          case 15:
-            // Optionally, handle invalid phone numbers or non-NG numbers
-            socket.emit('error', 'Invalid phone number or unsupported country.');
-          case 16:
+          case 19:
+            _context.next = 21;
+            return (0, _getValidUser["default"])(jwt);
+          case 21:
+            _yield$getValidUser = _context.sent;
+            username = _yield$getValidUser.username;
+            phoneNumber = _yield$getValidUser.phoneNumber;
+            _id = _yield$getValidUser._id;
+            _context.next = 27;
+            return (0, _createRoom["default"])(_id, socket.id, phoneNumber);
+          case 27:
+            _yield$createRoom = _context.sent;
+            socketid = _yield$createRoom.socketid;
+            console.log('socketid', socketid);
+            room = socketid;
+            socket.join(room);
+            if (!username) {
+              io.to(room).emit('getusername', "Looks like you still haven't told me your name");
+            } else {
+              io.to(room).emit('loggedIn', {
+                username: username,
+                phoneNumber: phoneNumber,
+                jwt: jwt
+              });
+              io.to(room).emit('authenticated', "Greetings ".concat(username, ", I'm here to accept your orders"));
+            }
+          case 33:
           case "end":
             return _context.stop();
         }
@@ -98,64 +128,31 @@ io.on('connection', function (socket) {
       return _ref.apply(this, arguments);
     };
   }());
-  socket.on("isOtpInput", /*#__PURE__*/function () {
+  socket.on("isPhonenumberInput", /*#__PURE__*/function () {
     var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(usermsg) {
-      var currentSocketId, room, currentroom, messageValue, userPhoneNumber, usernum, result, phoneNumber, _yield$generateJWT, token, user, isNewUser, _tokens, username, _phoneNumber, tokens, latestToken;
+      var messageValue, usernum, pending;
       return _regeneratorRuntime().wrap(function _callee2$(_context2) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
-            currentSocketId = socket.id;
-            room = (0, _sanitizeId["default"])("".concat(currentSocketId));
-            _context2.next = 4;
-            return (0, _createRoom["default"])(room);
-          case 4:
-            currentroom = _context2.sent;
-            socket.join(currentroom);
             messageValue = usermsg.message;
-            userPhoneNumber = (usermsg.userPhoneNumber || '').trim();
-            usernum = (0, _validatePhoneNumber["default"])(userPhoneNumber);
+            usernum = (0, _validatePhoneNumber["default"])(messageValue);
             if (!(usernum !== null && usernum !== void 0 && usernum.isValid && usernum.country === 'NG')) {
-              _context2.next = 25;
+              _context2.next = 9;
               break;
             }
-            _context2.next = 12;
-            return (0, _createVerificationCheck2["default"])(messageValue, usernum.formattedNumber);
-          case 12:
-            result = _context2.sent;
-            //{ status: "approved", number: usernum.formattedNumber }; // Consider awaiting actual verification
-            phoneNumber = "".concat(result.number);
-            if (!(result.status === "approved")) {
-              _context2.next = 23;
-              break;
+            _context2.next = 5;
+            return (0, _createVerification2["default"])(usernum.formattedNumber);
+          case 5:
+            pending = _context2.sent;
+            if (pending === 'pending') {
+              io.to(room).emit('pendingotp', "I sent you an OTP, please check your SMS and send it back to confirm you own this number");
+              io.to(room).emit('keepusernumberforotp', messageValue);
             }
-            _context2.next = 17;
-            return (0, _generateJWT["default"])(phoneNumber);
-          case 17:
-            _yield$generateJWT = _context2.sent;
-            token = _yield$generateJWT.token;
-            user = _yield$generateJWT.user;
-            isNewUser = _yield$generateJWT.isNewUser;
-            io.to(currentroom).emit('saveJWT', token);
-            if (user.username.length === 0) {
-              io.to(currentroom).emit('receivedotp', "Your number ".concat(result.number, " has been saved.\nPlease let us know your name"));
-              io.to(currentroom).emit('getusername');
-            } else {
-              username = user.username, _phoneNumber = user.phoneNumber, tokens = user.tokens;
-              latestToken = (_tokens = tokens[tokens.length - 1]) === null || _tokens === void 0 ? void 0 : _tokens.token; // Use optional chaining
-              io.to(currentroom).emit('receivedotp', "Greetings ".concat(username, ", I'm here to accept your orders"));
-              io.to(currentroom).emit('loggedIn', {
-                username: username,
-                phoneNumber: _phoneNumber,
-                jwt: latestToken
-              });
-            }
-          case 23:
-            _context2.next = 26;
+            _context2.next = 10;
             break;
-          case 25:
-            // Optionally, handle invalid phone numbers or non-NG numbers
-            io.to(currentroom).emit('error', 'Invalid phone number or unsupported country.');
-          case 26:
+          case 9:
+            io.to(room).emit('error', 'Invalid phone number or unsupported country.');
+          case 10:
           case "end":
             return _context2.stop();
         }
@@ -165,49 +162,56 @@ io.on('connection', function (socket) {
       return _ref2.apply(this, arguments);
     };
   }());
-  socket.on("isNameinput", /*#__PURE__*/function () {
+  socket.on("isOtpInput", /*#__PURE__*/function () {
     var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(usermsg) {
-      var username, jwt, currentroom, updatedUser, _tokens2, _username, phoneNumber, tokens, _id, latestToken, room;
+      var messageValue, userPhoneNumber, usernum, result, phoneNumber, _yield$generateJWT, token, user, isNewUser, _tokens, username, _phoneNumber, tokens, latestToken;
       return _regeneratorRuntime().wrap(function _callee3$(_context3) {
         while (1) switch (_context3.prev = _context3.next) {
           case 0:
-            username = usermsg.message;
-            jwt = usermsg.jwt;
-            currentroom = {
-              roomId: socket.id
-            };
-            _context3.next = 5;
-            return (0, _saveUserName["default"])(username, jwt);
-          case 5:
-            updatedUser = _context3.sent;
-            if (!updatedUser) {
+            messageValue = usermsg.message;
+            userPhoneNumber = (usermsg.userPhoneNumber || '').trim();
+            usernum = (0, _validatePhoneNumber["default"])(userPhoneNumber);
+            if (!(usernum !== null && usernum !== void 0 && usernum.isValid && usernum.country === 'NG')) {
               _context3.next = 19;
               break;
             }
-            _username = updatedUser.username, phoneNumber = updatedUser.phoneNumber, tokens = updatedUser.tokens, _id = updatedUser._id;
-            latestToken = (_tokens2 = tokens[tokens.length - 1]) === null || _tokens2 === void 0 ? void 0 : _tokens2.token; // Use optional chaining
-            room = (0, _sanitizeId["default"])("".concat(_id));
-            _context3.next = 12;
-            return (0, _createRoom["default"])(room);
-          case 12:
-            currentroom = _context3.sent;
-            socket.join(currentroom.roomId);
-            if (socket.rooms.has(room)) {
-              console.log('user is online:', room);
+            _context3.next = 6;
+            return (0, _createVerificationCheck2["default"])(messageValue, usernum.formattedNumber);
+          case 6:
+            result = _context3.sent;
+            //{ status: "approved", number: usernum.formattedNumber }; // Consider awaiting actual verification
+            phoneNumber = "".concat(result.number);
+            if (!(result.status === "approved")) {
+              _context3.next = 17;
+              break;
             }
-            io.to(currentroom.roomId).emit('loggedIn', {
-              username: _username,
-              phoneNumber: phoneNumber,
-              jwt: latestToken
-            });
-            io.to(currentroom.roomId).emit('greeting', "Greetings ".concat(_username, ", I'm here to accept your orders"));
+            _context3.next = 11;
+            return (0, _generateJWT["default"])(phoneNumber);
+          case 11:
+            _yield$generateJWT = _context3.sent;
+            token = _yield$generateJWT.token;
+            user = _yield$generateJWT.user;
+            isNewUser = _yield$generateJWT.isNewUser;
+            io.to(room).emit('saveJWT', token);
+            if (user.username.length === 0) {
+              io.to(room).emit('receivedotp', "Your number ".concat(result.number, " has been saved.\nPlease let us know your name"));
+              io.to(room).emit('getusername');
+            } else {
+              username = user.username, _phoneNumber = user.phoneNumber, tokens = user.tokens;
+              latestToken = (_tokens = tokens[tokens.length - 1]) === null || _tokens === void 0 ? void 0 : _tokens.token; // Use optional chaining
+              io.to(room).emit('authenticated', "Greetings ".concat(username, ", I'm here to accept your orders"));
+              io.to(room).emit('loggedIn', {
+                username: username,
+                phoneNumber: _phoneNumber,
+                jwt: latestToken
+              });
+            }
+          case 17:
             _context3.next = 20;
             break;
           case 19:
-            // Optionally, handle cases where the user was not updated
-            if (currentroom) {
-              io.to(currentroom.roomId).emit('error', 'Failed to update username.');
-            }
+            // Optionally, handle invalid phone numbers or non-NG numbers
+            io.to(currentroom).emit('error', 'Invalid phone number or unsupported country.');
           case 20:
           case "end":
             return _context3.stop();
@@ -218,76 +222,60 @@ io.on('connection', function (socket) {
       return _ref3.apply(this, arguments);
     };
   }());
-  socket.on("isAuthenticated", /*#__PURE__*/function () {
-    var _ref4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(jwt) {
-      var currentroom, _yield$getValidUser, username, phoneNumber, _id, room;
+  socket.on("isNameinput", /*#__PURE__*/function () {
+    var _ref4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(usermsg) {
+      var username, jwt, updatedUser, _tokens2, _username, phoneNumber, tokens, _id, latestToken;
       return _regeneratorRuntime().wrap(function _callee4$(_context4) {
         while (1) switch (_context4.prev = _context4.next) {
           case 0:
-            currentroom = {
-              roomId: socket.id
-            };
-            _context4.prev = 1;
+            username = usermsg.message;
+            jwt = usermsg.jwt;
             _context4.next = 4;
-            return (0, _getValidUser["default"])(jwt);
+            return (0, _saveUserName["default"])(username, jwt);
           case 4:
-            _yield$getValidUser = _context4.sent;
-            username = _yield$getValidUser.username;
-            phoneNumber = _yield$getValidUser.phoneNumber;
-            _id = _yield$getValidUser._id;
-            room = (0, _sanitizeId["default"])("".concat(_id));
-            _context4.next = 11;
-            return (0, _createRoom["default"])(room);
-          case 11:
-            currentroom = _context4.sent;
-            socket.join(currentroom.roomId);
-            if (!username) {
-              io.to(currentroom.roomId).emit('getusername', "Looks like you still haven't told me your name");
-            } else {
-              io.to(currentroom.roomId).emit('loggedIn', {
-                username: username,
+            updatedUser = _context4.sent;
+            if (updatedUser) {
+              _username = updatedUser.username, phoneNumber = updatedUser.phoneNumber, tokens = updatedUser.tokens, _id = updatedUser._id;
+              latestToken = (_tokens2 = tokens[tokens.length - 1]) === null || _tokens2 === void 0 ? void 0 : _tokens2.token;
+              io.to(room).emit('loggedIn', {
+                username: _username,
                 phoneNumber: phoneNumber,
-                jwt: jwt
+                jwt: latestToken
               });
-              io.to(currentroom.roomId).emit('greeting', "Greetings ".concat(username, ", I'm here to accept your orders"));
+              io.to(room).emit('authenticated', "Greetings ".concat(_username, ", I'm here to accept your orders"));
             }
-            if (socket.rooms.has(room)) {
-              console.log('user is online:', room);
-            }
-            _context4.next = 21;
-            break;
-          case 17:
-            _context4.prev = 17;
-            _context4.t0 = _context4["catch"](1);
-            console.error('Error authenticating user:', _context4.t0);
-            io.to(currentroom.roomId).emit('error', 'Authentication failed. Please try again.');
-          case 21:
+          case 6:
           case "end":
             return _context4.stop();
         }
-      }, _callee4, null, [[1, 17]]);
+      }, _callee4);
     }));
     return function (_x4) {
       return _ref4.apply(this, arguments);
     };
   }());
-  socket.on("isAdminJoinRoom", /*#__PURE__*/function () {
-    var _ref5 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(roomid) {
-      var room, currentroom;
+  socket.on("isLoggedInInput", /*#__PURE__*/function () {
+    var _ref5 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(usermsg) {
+      var jwt, message, _yield$getValidUser2, _id, username;
       return _regeneratorRuntime().wrap(function _callee5$(_context5) {
         while (1) switch (_context5.prev = _context5.next) {
           case 0:
-            console.log('roomid:', roomid, 'roomid');
-            room = (0, _sanitizeId["default"])("".concat(roomid));
-            _context5.next = 4;
-            return (0, _createRoom["default"])(room);
-          case 4:
-            currentroom = _context5.sent;
-            socket.join(currentroom.roomId);
-            if (socket.rooms.has(room)) {
-              console.log('admin is online:', room);
-            }
-          case 7:
+            jwt = usermsg.jwt, message = usermsg.message;
+            _context5.next = 3;
+            return (0, _getValidUser["default"])(jwt);
+          case 3:
+            _yield$getValidUser2 = _context5.sent;
+            _id = _yield$getValidUser2._id;
+            username = _yield$getValidUser2.username;
+            io.to(room).emit('chat_message_from_user', {
+              message: message,
+              _id: _id,
+              username: username
+            });
+            console.log('room in chat:', room);
+            _context5.next = 10;
+            return (0, _saveMessage["default"])(usermsg);
+          case 10:
           case "end":
             return _context5.stop();
         }
@@ -297,25 +285,21 @@ io.on('connection', function (socket) {
       return _ref5.apply(this, arguments);
     };
   }());
-  socket.on("isAdminInput", /*#__PURE__*/function () {
-    var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(adminmsg) {
-      var content, current_userid, room, currentroom;
+  socket.on("isAdminJoinRoom", /*#__PURE__*/function () {
+    var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(userid) {
+      var _yield$joinRoom, socketid;
       return _regeneratorRuntime().wrap(function _callee6$(_context6) {
         while (1) switch (_context6.prev = _context6.next) {
           case 0:
-            //console.log(adminmsg);
-            content = adminmsg.content, current_userid = adminmsg.current_userid;
-            console.log();
-            room = (0, _sanitizeId["default"])("".concat(current_userid));
-            console.log();
-            _context6.next = 6;
-            return (0, _createRoom["default"])(room);
-          case 6:
-            currentroom = _context6.sent;
-            console.log('check admin message:', 'room', room, content, currentroom.roomId, current_userid);
-            socket.join(currentroom.roomId);
-            io.to(currentroom.roomId).emit('chatMessageFromPayoor', content);
-          case 10:
+            _context6.next = 2;
+            return (0, _joinRoom["default"])(userid);
+          case 2:
+            _yield$joinRoom = _context6.sent;
+            socketid = _yield$joinRoom.socketid;
+            room = socketid;
+            console.log(room);
+            socket.join(room);
+          case 7:
           case "end":
             return _context6.stop();
         }
@@ -325,36 +309,16 @@ io.on('connection', function (socket) {
       return _ref6.apply(this, arguments);
     };
   }());
-  socket.on("isLoggedInInput", /*#__PURE__*/function () {
-    var _ref7 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(usermsg) {
-      var jwt, message, _yield$getValidUser2, _id, username, room, currentroom;
+  socket.on("isAdminInput", /*#__PURE__*/function () {
+    var _ref7 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(adminmsg) {
+      var content;
       return _regeneratorRuntime().wrap(function _callee7$(_context7) {
         while (1) switch (_context7.prev = _context7.next) {
           case 0:
-            jwt = usermsg.jwt, message = usermsg.message;
-            _context7.next = 3;
-            return (0, _getValidUser["default"])(jwt);
+            content = adminmsg.content;
+            console.log(room, content);
+            io.to(room).emit('chatMessageFromPayoor', content);
           case 3:
-            _yield$getValidUser2 = _context7.sent;
-            _id = _yield$getValidUser2._id;
-            username = _yield$getValidUser2.username;
-            console.log('user', _id, usermsg);
-            room = (0, _sanitizeId["default"])("".concat(_id));
-            console.log('room', room);
-            _context7.next = 11;
-            return (0, _createRoom["default"])(room);
-          case 11:
-            currentroom = _context7.sent;
-            console.log('currentroom:', currentroom);
-            socket.join(currentroom.roomId);
-            io.to(currentroom.roomId).emit('chat_message_from_user', {
-              message: message,
-              _id: _id,
-              username: username
-            });
-            _context7.next = 17;
-            return (0, _saveMessage["default"])(usermsg);
-          case 17:
           case "end":
             return _context7.stop();
         }
@@ -364,12 +328,6 @@ io.on('connection', function (socket) {
       return _ref7.apply(this, arguments);
     };
   }());
-  socket.on('disconnect', function () {
-    //socket.leave(room);
-
-    //console.log('user left room:', room)
-    console.log('A user disconnected:', socket.id);
-  });
 });
 mongoose.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
