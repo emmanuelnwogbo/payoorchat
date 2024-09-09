@@ -31,7 +31,7 @@ var server = require('http').createServer(app);
 var mongoose = require('mongoose');
 var io = require('socket.io')(server, {
   cors: {
-    origin: ["http://localhost:3000", 'https://dfa1-149-22-81-214.ngrok-free.app', "https://chat.payoor.shop"],
+    origin: ["http://localhost:3000", 'https://dfa1-149-22-81-214.ngrok-free.app', "https://chat.payoor.shop", "http://localhost:61593"],
     methods: ["GET", "POST"]
   }
 });
@@ -39,7 +39,7 @@ var io = require('socket.io')(server, {
 //createService();
 
 var corsOptions = {
-  origin: ['http://localhost:3000', 'https://dfa1-149-22-81-214.ngrok-free.app', 'https://chat.payoor.shop'],
+  origin: ['http://localhost:3000', 'https://dfa1-149-22-81-214.ngrok-free.app', 'https://chat.payoor.shop', "http://localhost:61593"],
   optionsSuccessStatus: 200
 };
 app.use((0, _cors["default"])(corsOptions));

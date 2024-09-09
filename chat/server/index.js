@@ -12,7 +12,8 @@ const io = require('socket.io')(server, {
     origin: [
       "http://localhost:3000",
       'https://dfa1-149-22-81-214.ngrok-free.app',
-      "https://chat.payoor.shop"
+      "https://chat.payoor.shop",
+      "http://localhost:61593",
     ],
     methods: ["GET", "POST"]
   }
@@ -47,6 +48,7 @@ const corsOptions = {
     'http://localhost:3000',
     'https://dfa1-149-22-81-214.ngrok-free.app',
     'https://chat.payoor.shop',
+    "http://localhost:61593",
   ],
   optionsSuccessStatus: 200,
 };
