@@ -11,7 +11,7 @@ const io = require('socket.io')(server, {
   cors: {
     origin: [
       "http://localhost:3000",
-      'http://localhost:49921',
+      'https://dfa1-149-22-81-214.ngrok-free.app',
       "https://chat.payoor.shop"
     ],
     methods: ["GET", "POST"]
@@ -45,7 +45,7 @@ import createVerificationCheckTest from './services/payoor/test/createVerificati
 const corsOptions = {
   origin: [
     'http://localhost:3000',
-    'http://localhost:49921',
+    'https://dfa1-149-22-81-214.ngrok-free.app',
     'https://chat.payoor.shop',
   ],
   optionsSuccessStatus: 200,
