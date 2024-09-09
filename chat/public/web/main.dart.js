@@ -37979,7 +37979,7 @@ $0(){this.a.ay=this.b},
 $S:0}
 A.WK.prototype={
 $1(a){var s
-if(a)this.a.rs(!0)
+if(a!=null)this.a.rs(a)
 s=this.a
 s.ai(new A.WG(s))},
 $S:7}
@@ -38134,7 +38134,7 @@ return A.N($async$ty,r)},
 $iavj:1}
 A.IB.prototype={
 L(a){var s=null,r=$.ara(),q=A.t5(s,A.asd(B.ac,s,s,B.FY),!0)
-return new A.vf(new A.tt(new A.a76(),s,s,A.aMk(),A.aLd(),t.vG),s,s,new A.xq(r,A.ad(["/",new A.a77(),"/chatscreen",new A.a78()],t.N,t.Ab),"/","Payoor Chat",q,!1,s),s,t.zv)}}
+return new A.vf(new A.tt(new A.a76(),s,s,A.aMk(),A.aLd(),t.vG),s,s,new A.xq(r,A.ad(["/",new A.a77(),"/chatscreen",new A.a78()],t.N,t.Ab),"/","Flutter Demo",q,!1,s),s,t.zv)}}
 A.a76.prototype={
 $1(a){return new A.fz(A.b([],t.n_),$.ao())},
 $S:267}

@@ -11,6 +11,7 @@ const io = require('socket.io')(server, {
   cors: {
     origin: [
       "http://localhost:3000",
+      'http://localhost:49921',
       "https://chat.payoor.shop"
     ],
     methods: ["GET", "POST"]
@@ -44,7 +45,7 @@ import createVerificationCheckTest from './services/payoor/test/createVerificati
 const corsOptions = {
   origin: [
     'http://localhost:3000',
-    'http://localhost:56325',
+    'http://localhost:49921',
     'https://chat.payoor.shop',
   ],
   optionsSuccessStatus: 200,
@@ -68,20 +69,30 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+
+
+  //console.log('A user connected:', currentSocketId);
 
   socket.on("isPhonenumberInput", async (usermsg) => {
-    console.log(usermsg);
     const messageValue = usermsg.message;
 
     const usernum = validatePhoneNumber(messageValue);
+
+    const currentSocketId = socket.id;
+
+    const room = sanitizeId(`${currentSocketId}`);
+
+    const currentroom = await createRoom(room);
+
+    socket.join(currentroom);
 
     if (usernum?.isValid && usernum.country === 'NG') {
       const pending = await createVerificationTest(usernum.formattedNumber);
 
       if (pending === 'pending') {
-        socket.emit('pendingotp', "I sent you an OTP, please check your SMS and send it back to confirm you own this number");
-        socket.emit('keepusernumberforotp', messageValue);
+
+        io.to(currentroom).emit('pendingotp', "I sent you an OTP, please check your SMS and send it back to confirm you own this number");
+        io.to(currentroom).emit('keepusernumberforotp', messageValue);
       }
     } else {
       // Optionally, handle invalid phone numbers or non-NG numbers
@@ -90,7 +101,14 @@ io.on('connection', (socket) => {
   });
 
   socket.on("isOtpInput", async (usermsg) => {
-    console.log(usermsg);
+    const currentSocketId = socket.id;
+
+    const room = sanitizeId(`${currentSocketId}`);
+
+    const currentroom = await createRoom(room);
+
+    socket.join(currentroom);
+
     const messageValue = usermsg.message;
     const userPhoneNumber = (usermsg.userPhoneNumber || '').trim();
 
@@ -102,21 +120,21 @@ io.on('connection', (socket) => {
       if (result.status === "approved") {
         const { token, user, isNewUser } = await generateJWT(phoneNumber);
 
-        socket.emit('saveJWT', token);
+        io.to(currentroom).emit('saveJWT', token);
 
         if (user.username.length === 0) {
-          socket.emit('receivedotp', `Your number ${result.number} has been saved.\nPlease let us know your name`);
-          socket.emit('getusername');
+          io.to(currentroom).emit('receivedotp', `Your number ${result.number} has been saved.\nPlease let us know your name`);
+          io.to(currentroom).emit('getusername');
         } else {
           const { username, phoneNumber, tokens } = user;
           const latestToken = tokens[tokens.length - 1]?.token; // Use optional chaining
-          socket.emit('receivedotp', `Greetings ${username}, I'm here to accept your orders`);
-          socket.emit('loggedIn', { username, phoneNumber, jwt: latestToken });
+          io.to(currentroom).emit('receivedotp', `Greetings ${username}, I'm here to accept your orders`);
+          io.to(currentroom).emit('loggedIn', { username, phoneNumber, jwt: latestToken });
         }
       }
     } else {
       // Optionally, handle invalid phone numbers or non-NG numbers
-      socket.emit('error', 'Invalid phone number or unsupported country.');
+      io.to(currentroom).emit('error', 'Invalid phone number or unsupported country.');
     }
   });
 
@@ -124,48 +142,60 @@ io.on('connection', (socket) => {
     const username = usermsg.message;
     const jwt = usermsg.jwt;
 
+    let currentroom = { roomId: socket.id };
+
     const updatedUser = await saveUserName(username, jwt);
 
     if (updatedUser) {
-      const { username, phoneNumber, tokens } = updatedUser;
+      const { username, phoneNumber, tokens, _id } = updatedUser;
       const latestToken = tokens[tokens.length - 1]?.token; // Use optional chaining
-
-      socket.emit('loggedIn', { username, phoneNumber, jwt: latestToken });
-      socket.emit('greeting', `Greetings ${username}, I'm here to accept your orders`);
-    } else {
-      // Optionally, handle cases where the user was not updated
-      socket.emit('error', 'Failed to update username.');
-    }
-  });
-
-  socket.on("isAuthenticated", async (jwt) => {
-    try {
-      const { username, phoneNumber, _id } = await getValidUser(jwt);
-
-      if (!username) {
-        socket.emit('getusername', `Looks like you still haven't told me your name`);
-      } else {
-        socket.emit('loggedIn', { username, phoneNumber, jwt });
-        socket.emit('greeting', `Greetings ${username}, I'm here to accept your orders`);
-      }
 
       const room = sanitizeId(`${_id}`);
 
-      const currentroom = await createRoom(room);
+      currentroom = await createRoom(room);
 
       socket.join(currentroom.roomId);
 
       if (socket.rooms.has(room)) {
         console.log('user is online:', room);
       }
-    } catch (error) {
-      console.error('Error authenticating user:', error);
-      socket.emit('error', 'Authentication failed. Please try again.');
+
+      io.to(currentroom.roomId).emit('loggedIn', { username, phoneNumber, jwt: latestToken });
+      io.to(currentroom.roomId).emit('greeting', `Greetings ${username}, I'm here to accept your orders`);
+    } else {
+      // Optionally, handle cases where the user was not updated
+      if (currentroom) {
+        io.to(currentroom.roomId).emit('error', 'Failed to update username.');
+      }
     }
   });
 
-  socket.on("isAdminOnline", async () => {
-    //console.log("admin is online");
+  socket.on("isAuthenticated", async (jwt) => {
+    let currentroom = { roomId: socket.id };
+
+    try {
+      const { username, phoneNumber, _id } = await getValidUser(jwt);
+
+      const room = sanitizeId(`${_id}`);
+
+      currentroom = await createRoom(room);
+
+      socket.join(currentroom.roomId);
+
+      if (!username) {
+        io.to(currentroom.roomId).emit('getusername', `Looks like you still haven't told me your name`);
+      } else {
+        io.to(currentroom.roomId).emit('loggedIn', { username, phoneNumber, jwt });
+        io.to(currentroom.roomId).emit('greeting', `Greetings ${username}, I'm here to accept your orders`);
+      }
+
+      if (socket.rooms.has(room)) {
+        console.log('user is online:', room);
+      }
+    } catch (error) {
+      console.error('Error authenticating user:', error);
+      io.to(currentroom.roomId).emit('error', 'Authentication failed. Please try again.');
+    }
   });
 
   socket.on("isAdminJoinRoom", async (roomid) => {
