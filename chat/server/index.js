@@ -6,21 +6,25 @@ const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
 const mongoose = require('mongoose');
+const crypto = require('crypto');
+import path from 'path';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import fs from 'fs';
+
+const corsOrginArray = [
+  'http://localhost:3000',
+  'https://dfa1-149-22-81-214.ngrok-free.app',
+  'https://chat.payoor.shop',
+  "http://localhost:52100",
+]
 
 const io = require('socket.io')(server, {
   cors: {
-    origin: [
-      "http://localhost:3000",
-      'https://dfa1-149-22-81-214.ngrok-free.app',
-      "https://chat.payoor.shop",
-      "http://localhost:64274",
-    ],
+    origin: corsOrginArray,
     methods: ["GET", "POST"]
   }
 });
-
-import path from 'path';
-import cors from 'cors';
 
 import validatePhoneNumber from './services/payoor/validatePhoneNumber';
 import generateJWT from './services/payoor/generateJWT';
@@ -31,6 +35,9 @@ import sanitizeId from './services/payoor/sanitizeId';
 import toggleOnlineState from './services/payoor/toggleOnlineState';
 import createRoom from './services/payoor/createRoom';
 import joinRoom from './services/payoor/joinRoom';
+import verifyToken from './services/payoor/verifyToken';
+
+import File from './models/file';
 
 import userRoute from './routes/userRoute';
 import conversationRoute from './routes/conversationRoute';
@@ -45,15 +52,9 @@ import createVerificationCheckTest from './services/payoor/test/createVerificati
 //createService();
 
 const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'https://dfa1-149-22-81-214.ngrok-free.app',
-    'https://chat.payoor.shop',
-    "http://localhost:64274",
-  ],
+  origin: corsOrginArray,
   optionsSuccessStatus: 200,
 };
-
 
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -61,14 +62,79 @@ app.use(express.json());
 app.use(userRoute);
 app.use(conversationRoute);
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'POST');
+    return res.status(200).json({});
+  }
+  next();
+});
+
 const PORT = process.env.PORT || 3030;
 const FLUTTER_WEB_APP = path.join(__dirname, '../public', 'web');
 app.use(express.static(FLUTTER_WEB_APP));
+
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
 app.get('/', (req, res) => {
   const indexPath = path.join(FLUTTER_WEB_APP, 'index.html');
 
   res.sendFile(indexPath);
+});
+
+const uploadDir = path.resolve(__dirname, '..', '.', 'uploads');
+
+// Ensure the upload directory exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+app.post('/upload', verifyToken, (req, res) => {
+  try {
+    const { image, filename } = req.body;
+
+    const { authData } = req;
+
+    console.log(authData._id);
+
+    if (!image || !filename) {
+      return res.status(400).send('Image and filename are required');
+    }
+
+    const fileExtension = path.extname(filename);
+    const uniqueFilename = `${crypto.randomBytes(16).toString('hex')}${fileExtension}`;
+
+    const buffer = Buffer.from(image, 'base64');
+    const filePath = path.join(uploadDir, uniqueFilename);
+
+    const fileUrl = `uploads/${uniqueFilename}`;
+
+    fs.writeFile(filePath, buffer, async (err) => {
+      if (err) {
+        console.error('Error saving file:', err);
+        return res.status(500).send('Error saving file');
+      }
+
+      const newFile = new File({
+        uploadedBy: authData._id,
+        url: fileUrl,
+        filePath
+      });
+
+      try {
+        await newFile.save();
+        res.status(200).json({ message: 'File uploaded successfully', fileUrl });
+      } catch (dbError) {
+        console.error('Error saving to database:', dbError);
+        res.status(500).send('Error saving file information to database');
+      }
+    });
+  } catch (error) {
+    console.log('error:', error)
+  }
 });
 
 io.on('connection', socket => {
@@ -98,13 +164,11 @@ io.on('connection', socket => {
         const { username, phoneNumber, _id } = await getValidUser(jwt);
         const { socketid } = await createRoom(_id, socket.id, phoneNumber);
 
-        console.log('socketid', socketid);
-
         room = socketid;
 
         socket.join(room);
 
-        if (!username) {
+        if (username.length === 0) {
           io.to(room).emit('getusername', `Looks like you still haven't told me your name`);
         } else {
           io.to(room).emit('loggedIn', { username, phoneNumber, jwt });
@@ -119,6 +183,7 @@ io.on('connection', socket => {
     const messageValue = usermsg.message;
     const usernum = validatePhoneNumber(messageValue);
 
+    io.to(room).emit('payoorIsTyping');
 
     if (usernum?.isValid && usernum.country === 'NG') {
       const pending = await createVerificationTest(usernum.formattedNumber);
@@ -138,6 +203,8 @@ io.on('connection', socket => {
     const userPhoneNumber = (usermsg.userPhoneNumber || '').trim();
 
     const usernum = validatePhoneNumber(userPhoneNumber);
+
+    io.to(room).emit('payoorIsTyping');
 
     if (usernum?.isValid && usernum.country === 'NG') {
       const result = await createVerificationCheckTest(messageValue, usernum.formattedNumber);//{ status: "approved", number: usernum.formattedNumber }; // Consider awaiting actual verification
@@ -169,6 +236,8 @@ io.on('connection', socket => {
 
     const updatedUser = await saveUserName(username, jwt);
 
+    io.to(room).emit('payoorIsTyping');
+
     if (updatedUser) {
       const { username, phoneNumber, tokens, _id } = updatedUser;
       const latestToken = tokens[tokens.length - 1]?.token;
@@ -180,13 +249,19 @@ io.on('connection', socket => {
 
   socket.on("isLoggedInInput", async (usermsg) => {
     const { jwt, message } = usermsg;
-    const { _id, username } = await getValidUser(jwt);
 
-    io.to(room).emit('chat_message_from_user', { message, _id, username });
+    try {
+      const { _id, username } = await getValidUser(jwt);
 
-    console.log('room in chat:', room);
+      await saveMessage(usermsg); // Save message before emitting
 
-    await saveMessage(usermsg);
+      io.to(room).emit('chat_message_from_user', { message, _id, username });
+
+      console.log('room in chat:', room);
+    } catch (error) {
+      // Handle errors gracefully, e.g., log the error, inform the user, etc.
+      console.error('Error processing message:', error);
+    }
   });
 
   socket.on("isAdminJoinRoom", async (userid) => {
@@ -202,11 +277,26 @@ io.on('connection', socket => {
   socket.on("isAdminInput", async (adminmsg) => {
     const { content } = adminmsg;
 
-    console.log(room, content)
+    try {
+      console.log(room, content); // Log message content before saving
 
-    io.to(room).emit('chatMessageFromPayoor', content);
-  })
+      // Implement logic to save the admin message (if needed)
+      // This could involve saving the content, timestamp, room, etc.
+      // await saveAdminMessage(adminmsg); // Example for saving
 
+      io.to(room).emit('chatMessageFromPayoor', content);
+    } catch (error) {
+      // Handle errors gracefully, e.g., log the error
+      console.error('Error processing admin message:', error);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    //socket.leave(room);
+
+    //console.log('user left room:', room)
+    console.log('A user disconnected:', socket.id);
+  });
 });
 
 mongoose.connect(process.env.MONGO_URL, {

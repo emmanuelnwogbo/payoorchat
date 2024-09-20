@@ -4,23 +4,18 @@ import getPayloadFromToken from './getPayloadFromToken';
 
 async function saveUserName(username, jwt) {
     try {
-        console.log(username, jwt);
-
-        // Decode JWT to get the user payload
         const payload = getPayloadFromToken(jwt);
 
-        // Find the user by _id and update the username field
         const updatedUser = await User.findOneAndUpdate(
-            { _id: payload._id },               // Find user by _id from JWT payload
-            { username: username },              // Update the username field
-            { new: true }                        // Return the updated document
+            { _id: payload._id },
+            { username: username },
+            { new: true }
         );
 
-        console.log(updatedUser);
-        return updatedUser; // Optionally return the updated user
+        return updatedUser;
     } catch (error) {
         console.log(error);
-        throw error;  // Optionally rethrow the error to handle it elsewhere
+        throw error; 
     }
 }
 

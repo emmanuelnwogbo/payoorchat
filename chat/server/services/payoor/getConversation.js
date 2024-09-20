@@ -14,6 +14,7 @@ async function getConversation(jwt) {
             .limit(Number(limit))
             .populate('user', 'username');
 
+        //console.log('conversation get:', conversation, 'conversation get:')
         return conversation;
     } catch (error) {
         console.log(error);

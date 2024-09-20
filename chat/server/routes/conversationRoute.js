@@ -26,32 +26,45 @@ conversationRoute.get('/getconversation/admin', async (req, res) => {
         .limit(Number(limit))
         .populate('user', 'username');
 
-    console.log(conversation)
+    console.log('conversation:', conversation, 'conversation:')
 
     res.status(200).send({ conversation });
 });
 
 conversationRoute.post('/saveconversation', async (req, res) => {
-    const { jwt } = req.query;
-    const body = req.body;
+    try {
+        const { jwt } = req.query;
+        const body = req.body;
 
-    const payload = getPayloadFromToken(jwt);
+        if (!Array.isArray(body)) {
+            return res.status(400).send({ message: 'Invalid input: body must be an array' });
+        }
 
-    body.forEach(msg => {
-        const newMessage = new Message({
-            user: payload._id,
-            content: msg.message,
-            userPhoneNumber: payload.phoneNumber,
-            isUser: msg.isUser,
-            isAdmin: !msg.isUser,
-            isLoggedIn: msg.isLoggedIn,
-            timestamp: msg.timestamp
+        const payload = getPayloadFromToken(jwt);
+
+        console.log(body);
+
+        const savePromises = body.map(msg => {
+            const newMessage = new Message({
+                user: payload._id,
+                content: msg.message,
+                userPhoneNumber: payload.phoneNumber,
+                isUser: msg.isUser,
+                isAdmin: !msg.isUser,
+                isLoggedIn: msg.isLoggedIn,
+                timestamp: msg.timestamp
+            });
+
+            return newMessage.save();
         });
 
-        newMessage.save();
-    });
+        await Promise.all(savePromises);
 
-    res.status(200).send({ message: 'done' });
+        res.status(200).send({ message: 'All messages saved successfully' });
+    } catch (error) {
+        console.error('Error saving conversation:', error);
+        res.status(500).send({ message: 'An error occurred while saving the conversation' });
+    }
 });
 
 export default conversationRoute;

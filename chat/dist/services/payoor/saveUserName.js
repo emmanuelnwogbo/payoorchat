@@ -21,37 +21,28 @@ function _saveUserName() {
       while (1) switch (_context.prev = _context.next) {
         case 0:
           _context.prev = 0;
-          console.log(username, jwt);
-
-          // Decode JWT to get the user payload
-          payload = (0, _getPayloadFromToken["default"])(jwt); // Find the user by _id and update the username field
-          _context.next = 5;
+          payload = (0, _getPayloadFromToken["default"])(jwt);
+          _context.next = 4;
           return User.findOneAndUpdate({
             _id: payload._id
-          },
-          // Find user by _id from JWT payload
-          {
+          }, {
             username: username
-          },
-          // Update the username field
-          {
+          }, {
             "new": true
-          } // Return the updated document
-          );
-        case 5:
+          });
+        case 4:
           updatedUser = _context.sent;
-          console.log(updatedUser);
           return _context.abrupt("return", updatedUser);
-        case 10:
-          _context.prev = 10;
+        case 8:
+          _context.prev = 8;
           _context.t0 = _context["catch"](0);
           console.log(_context.t0);
           throw _context.t0;
-        case 14:
+        case 12:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 10]]);
+    }, _callee, null, [[0, 8]]);
   }));
   return _saveUserName.apply(this, arguments);
 }

@@ -4,6 +4,8 @@ function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == 
 require("regenerator-runtime");
 var _path = _interopRequireDefault(require("path"));
 var _cors = _interopRequireDefault(require("cors"));
+var _bodyParser = _interopRequireDefault(require("body-parser"));
+var _fs = _interopRequireDefault(require("fs"));
 var _validatePhoneNumber = _interopRequireDefault(require("./services/payoor/validatePhoneNumber"));
 var _generateJWT = _interopRequireDefault(require("./services/payoor/generateJWT"));
 var _saveMessage = _interopRequireDefault(require("./services/payoor/saveMessage"));
@@ -13,6 +15,8 @@ var _sanitizeId = _interopRequireDefault(require("./services/payoor/sanitizeId")
 var _toggleOnlineState = _interopRequireDefault(require("./services/payoor/toggleOnlineState"));
 var _createRoom = _interopRequireDefault(require("./services/payoor/createRoom"));
 var _joinRoom = _interopRequireDefault(require("./services/payoor/joinRoom"));
+var _verifyToken = _interopRequireDefault(require("./services/payoor/verifyToken"));
+var _file = _interopRequireDefault(require("./models/file"));
 var _userRoute = _interopRequireDefault(require("./routes/userRoute"));
 var _conversationRoute = _interopRequireDefault(require("./routes/conversationRoute"));
 var _createVerification = _interopRequireDefault(require("./services/twilio/createVerification"));
@@ -30,9 +34,11 @@ var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
 var mongoose = require('mongoose');
+var crypto = require('crypto');
+var corsOrginArray = ['http://localhost:3000', 'https://dfa1-149-22-81-214.ngrok-free.app', 'https://chat.payoor.shop', "http://localhost:52100"];
 var io = require('socket.io')(server, {
   cors: {
-    origin: ["http://localhost:3000", 'https://dfa1-149-22-81-214.ngrok-free.app', "https://chat.payoor.shop", "http://localhost:64274"],
+    origin: corsOrginArray,
     methods: ["GET", "POST"]
   }
 });
@@ -40,75 +46,160 @@ var io = require('socket.io')(server, {
 //createService();
 
 var corsOptions = {
-  origin: ['http://localhost:3000', 'https://dfa1-149-22-81-214.ngrok-free.app', 'https://chat.payoor.shop', "http://localhost:64274"],
+  origin: corsOrginArray,
   optionsSuccessStatus: 200
 };
 app.use((0, _cors["default"])(corsOptions));
 app.use(express.json());
 app.use(_userRoute["default"]);
 app.use(_conversationRoute["default"]);
+app.use(function (req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'POST');
+    return res.status(200).json({});
+  }
+  next();
+});
 var PORT = process.env.PORT || 3030;
 var FLUTTER_WEB_APP = _path["default"].join(__dirname, '../public', 'web');
 app.use(express["static"](FLUTTER_WEB_APP));
+app.use(_bodyParser["default"].json({
+  limit: '50mb'
+}));
+app.use(_bodyParser["default"].urlencoded({
+  limit: '50mb',
+  extended: true
+}));
 app.get('/', function (req, res) {
   var indexPath = _path["default"].join(FLUTTER_WEB_APP, 'index.html');
   res.sendFile(indexPath);
 });
+var uploadDir = _path["default"].resolve(__dirname, '..', '.', 'uploads');
+
+// Ensure the upload directory exists
+if (!_fs["default"].existsSync(uploadDir)) {
+  _fs["default"].mkdirSync(uploadDir, {
+    recursive: true
+  });
+}
+app.post('/upload', _verifyToken["default"], function (req, res) {
+  try {
+    var _req$body = req.body,
+      image = _req$body.image,
+      filename = _req$body.filename;
+    var authData = req.authData;
+    console.log(authData._id);
+    if (!image || !filename) {
+      return res.status(400).send('Image and filename are required');
+    }
+    var fileExtension = _path["default"].extname(filename);
+    var uniqueFilename = "".concat(crypto.randomBytes(16).toString('hex')).concat(fileExtension);
+    var buffer = Buffer.from(image, 'base64');
+    var filePath = _path["default"].join(uploadDir, uniqueFilename);
+    var fileUrl = "uploads/".concat(uniqueFilename);
+    _fs["default"].writeFile(filePath, buffer, /*#__PURE__*/function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(err) {
+        var newFile;
+        return _regeneratorRuntime().wrap(function _callee$(_context) {
+          while (1) switch (_context.prev = _context.next) {
+            case 0:
+              if (!err) {
+                _context.next = 3;
+                break;
+              }
+              console.error('Error saving file:', err);
+              return _context.abrupt("return", res.status(500).send('Error saving file'));
+            case 3:
+              newFile = new _file["default"]({
+                uploadedBy: authData._id,
+                url: fileUrl,
+                filePath: filePath
+              });
+              _context.prev = 4;
+              _context.next = 7;
+              return newFile.save();
+            case 7:
+              res.status(200).json({
+                message: 'File uploaded successfully',
+                fileUrl: fileUrl
+              });
+              _context.next = 14;
+              break;
+            case 10:
+              _context.prev = 10;
+              _context.t0 = _context["catch"](4);
+              console.error('Error saving to database:', _context.t0);
+              res.status(500).send('Error saving file information to database');
+            case 14:
+            case "end":
+              return _context.stop();
+          }
+        }, _callee, null, [[4, 10]]);
+      }));
+      return function (_x) {
+        return _ref.apply(this, arguments);
+      };
+    }());
+  } catch (error) {
+    console.log('error:', error);
+  }
+});
 io.on('connection', function (socket) {
   var room;
   socket.on("initConnect", /*#__PURE__*/function () {
-    var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(jwtData) {
+    var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(jwtData) {
       var jwt, message, user, _message, _yield$getValidUser, username, phoneNumber, _id, _yield$createRoom, socketid;
-      return _regeneratorRuntime().wrap(function _callee$(_context) {
-        while (1) switch (_context.prev = _context.next) {
+      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
+        while (1) switch (_context2.prev = _context2.next) {
           case 0:
             jwt = jwtData.jwt;
             if (!(jwt === null)) {
-              _context.next = 8;
+              _context2.next = 8;
               break;
             }
             room = socket.id;
             socket.join(room);
             message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
             io.to(room).emit("unauthenticated", message);
-            _context.next = 33;
+            _context2.next = 32;
             break;
           case 8:
             if (!(jwt !== null)) {
-              _context.next = 33;
+              _context2.next = 32;
               break;
             }
-            _context.next = 11;
+            _context2.next = 11;
             return (0, _getValidUser["default"])(jwt);
           case 11:
-            user = _context.sent;
+            user = _context2.sent;
             if (!(user === null)) {
-              _context.next = 19;
+              _context2.next = 19;
               break;
             }
             room = socket.id;
             socket.join(room);
             _message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
             io.to(room).emit("unauthenticated", _message);
-            _context.next = 33;
+            _context2.next = 32;
             break;
           case 19:
-            _context.next = 21;
+            _context2.next = 21;
             return (0, _getValidUser["default"])(jwt);
           case 21:
-            _yield$getValidUser = _context.sent;
+            _yield$getValidUser = _context2.sent;
             username = _yield$getValidUser.username;
             phoneNumber = _yield$getValidUser.phoneNumber;
             _id = _yield$getValidUser._id;
-            _context.next = 27;
+            _context2.next = 27;
             return (0, _createRoom["default"])(_id, socket.id, phoneNumber);
           case 27:
-            _yield$createRoom = _context.sent;
+            _yield$createRoom = _context2.sent;
             socketid = _yield$createRoom.socketid;
-            console.log('socketid', socketid);
             room = socketid;
             socket.join(room);
-            if (!username) {
+            if (username.length === 0) {
               io.to(room).emit('getusername', "Looks like you still haven't told me your name");
             } else {
               io.to(room).emit('loggedIn', {
@@ -118,41 +209,7 @@ io.on('connection', function (socket) {
               });
               io.to(room).emit('authenticated', "Greetings ".concat(username, ", I'm here to accept your orders"));
             }
-          case 33:
-          case "end":
-            return _context.stop();
-        }
-      }, _callee);
-    }));
-    return function (_x) {
-      return _ref.apply(this, arguments);
-    };
-  }());
-  socket.on("isPhonenumberInput", /*#__PURE__*/function () {
-    var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(usermsg) {
-      var messageValue, usernum, pending;
-      return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-        while (1) switch (_context2.prev = _context2.next) {
-          case 0:
-            messageValue = usermsg.message;
-            usernum = (0, _validatePhoneNumber["default"])(messageValue);
-            if (!(usernum !== null && usernum !== void 0 && usernum.isValid && usernum.country === 'NG')) {
-              _context2.next = 9;
-              break;
-            }
-            _context2.next = 5;
-            return (0, _createVerification2["default"])(usernum.formattedNumber);
-          case 5:
-            pending = _context2.sent;
-            if (pending === 'pending') {
-              io.to(room).emit('pendingotp', "I sent you an OTP, please check your SMS and send it back to confirm you own this number");
-              io.to(room).emit('keepusernumberforotp', messageValue);
-            }
-            _context2.next = 10;
-            break;
-          case 9:
-            io.to(room).emit('error', 'Invalid phone number or unsupported country.');
-          case 10:
+          case 32:
           case "end":
             return _context2.stop();
         }
@@ -162,33 +219,69 @@ io.on('connection', function (socket) {
       return _ref2.apply(this, arguments);
     };
   }());
-  socket.on("isOtpInput", /*#__PURE__*/function () {
+  socket.on("isPhonenumberInput", /*#__PURE__*/function () {
     var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(usermsg) {
-      var messageValue, userPhoneNumber, usernum, result, phoneNumber, _yield$generateJWT, token, user, isNewUser, _tokens, username, _phoneNumber, tokens, latestToken;
+      var messageValue, usernum, pending;
       return _regeneratorRuntime().wrap(function _callee3$(_context3) {
         while (1) switch (_context3.prev = _context3.next) {
           case 0:
             messageValue = usermsg.message;
-            userPhoneNumber = (usermsg.userPhoneNumber || '').trim();
-            usernum = (0, _validatePhoneNumber["default"])(userPhoneNumber);
+            usernum = (0, _validatePhoneNumber["default"])(messageValue);
+            io.to(room).emit('payoorIsTyping');
             if (!(usernum !== null && usernum !== void 0 && usernum.isValid && usernum.country === 'NG')) {
-              _context3.next = 19;
+              _context3.next = 10;
               break;
             }
             _context3.next = 6;
-            return (0, _createVerificationCheck2["default"])(messageValue, usernum.formattedNumber);
+            return (0, _createVerification2["default"])(usernum.formattedNumber);
           case 6:
-            result = _context3.sent;
+            pending = _context3.sent;
+            if (pending === 'pending') {
+              io.to(room).emit('pendingotp', "I sent you an OTP, please check your SMS and send it back to confirm you own this number");
+              io.to(room).emit('keepusernumberforotp', messageValue);
+            }
+            _context3.next = 11;
+            break;
+          case 10:
+            io.to(room).emit('error', 'Invalid phone number or unsupported country.');
+          case 11:
+          case "end":
+            return _context3.stop();
+        }
+      }, _callee3);
+    }));
+    return function (_x3) {
+      return _ref3.apply(this, arguments);
+    };
+  }());
+  socket.on("isOtpInput", /*#__PURE__*/function () {
+    var _ref4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(usermsg) {
+      var messageValue, userPhoneNumber, usernum, result, phoneNumber, _yield$generateJWT, token, user, isNewUser, _tokens, username, _phoneNumber, tokens, latestToken;
+      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
+        while (1) switch (_context4.prev = _context4.next) {
+          case 0:
+            messageValue = usermsg.message;
+            userPhoneNumber = (usermsg.userPhoneNumber || '').trim();
+            usernum = (0, _validatePhoneNumber["default"])(userPhoneNumber);
+            io.to(room).emit('payoorIsTyping');
+            if (!(usernum !== null && usernum !== void 0 && usernum.isValid && usernum.country === 'NG')) {
+              _context4.next = 20;
+              break;
+            }
+            _context4.next = 7;
+            return (0, _createVerificationCheck2["default"])(messageValue, usernum.formattedNumber);
+          case 7:
+            result = _context4.sent;
             //{ status: "approved", number: usernum.formattedNumber }; // Consider awaiting actual verification
             phoneNumber = "".concat(result.number);
             if (!(result.status === "approved")) {
-              _context3.next = 17;
+              _context4.next = 18;
               break;
             }
-            _context3.next = 11;
+            _context4.next = 12;
             return (0, _generateJWT["default"])(phoneNumber);
-          case 11:
-            _yield$generateJWT = _context3.sent;
+          case 12:
+            _yield$generateJWT = _context4.sent;
             token = _yield$generateJWT.token;
             user = _yield$generateJWT.user;
             isNewUser = _yield$generateJWT.isNewUser;
@@ -206,34 +299,35 @@ io.on('connection', function (socket) {
                 jwt: latestToken
               });
             }
-          case 17:
-            _context3.next = 20;
+          case 18:
+            _context4.next = 21;
             break;
-          case 19:
+          case 20:
             // Optionally, handle invalid phone numbers or non-NG numbers
             io.to(currentroom).emit('error', 'Invalid phone number or unsupported country.');
-          case 20:
+          case 21:
           case "end":
-            return _context3.stop();
+            return _context4.stop();
         }
-      }, _callee3);
+      }, _callee4);
     }));
-    return function (_x3) {
-      return _ref3.apply(this, arguments);
+    return function (_x4) {
+      return _ref4.apply(this, arguments);
     };
   }());
   socket.on("isNameinput", /*#__PURE__*/function () {
-    var _ref4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(usermsg) {
+    var _ref5 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(usermsg) {
       var username, jwt, updatedUser, _tokens2, _username, phoneNumber, tokens, _id, latestToken;
-      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-        while (1) switch (_context4.prev = _context4.next) {
+      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+        while (1) switch (_context5.prev = _context5.next) {
           case 0:
             username = usermsg.message;
             jwt = usermsg.jwt;
-            _context4.next = 4;
+            _context5.next = 4;
             return (0, _saveUserName["default"])(username, jwt);
           case 4:
-            updatedUser = _context4.sent;
+            updatedUser = _context5.sent;
+            io.to(room).emit('payoorIsTyping');
             if (updatedUser) {
               _username = updatedUser.username, phoneNumber = updatedUser.phoneNumber, tokens = updatedUser.tokens, _id = updatedUser._id;
               latestToken = (_tokens2 = tokens[tokens.length - 1]) === null || _tokens2 === void 0 ? void 0 : _tokens2.token;
@@ -244,38 +338,7 @@ io.on('connection', function (socket) {
               });
               io.to(room).emit('authenticated', "Greetings ".concat(_username, ", I'm here to accept your orders"));
             }
-          case 6:
-          case "end":
-            return _context4.stop();
-        }
-      }, _callee4);
-    }));
-    return function (_x4) {
-      return _ref4.apply(this, arguments);
-    };
-  }());
-  socket.on("isLoggedInInput", /*#__PURE__*/function () {
-    var _ref5 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(usermsg) {
-      var jwt, message, _yield$getValidUser2, _id, username;
-      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-        while (1) switch (_context5.prev = _context5.next) {
-          case 0:
-            jwt = usermsg.jwt, message = usermsg.message;
-            _context5.next = 3;
-            return (0, _getValidUser["default"])(jwt);
-          case 3:
-            _yield$getValidUser2 = _context5.sent;
-            _id = _yield$getValidUser2._id;
-            username = _yield$getValidUser2.username;
-            io.to(room).emit('chat_message_from_user', {
-              message: message,
-              _id: _id,
-              username: username
-            });
-            console.log('room in chat:', room);
-            _context5.next = 10;
-            return (0, _saveMessage["default"])(usermsg);
-          case 10:
+          case 7:
           case "end":
             return _context5.stop();
         }
@@ -285,40 +348,63 @@ io.on('connection', function (socket) {
       return _ref5.apply(this, arguments);
     };
   }());
-  socket.on("isAdminJoinRoom", /*#__PURE__*/function () {
-    var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(userid) {
-      var _yield$joinRoom, socketid;
+  socket.on("isLoggedInInput", /*#__PURE__*/function () {
+    var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(usermsg) {
+      var jwt, message, _yield$getValidUser2, _id, username;
       return _regeneratorRuntime().wrap(function _callee6$(_context6) {
         while (1) switch (_context6.prev = _context6.next) {
           case 0:
-            _context6.next = 2;
-            return (0, _joinRoom["default"])(userid);
-          case 2:
-            _yield$joinRoom = _context6.sent;
-            socketid = _yield$joinRoom.socketid;
-            room = socketid;
-            console.log(room);
-            socket.join(room);
-          case 7:
+            jwt = usermsg.jwt, message = usermsg.message;
+            _context6.prev = 1;
+            _context6.next = 4;
+            return (0, _getValidUser["default"])(jwt);
+          case 4:
+            _yield$getValidUser2 = _context6.sent;
+            _id = _yield$getValidUser2._id;
+            username = _yield$getValidUser2.username;
+            _context6.next = 9;
+            return (0, _saveMessage["default"])(usermsg);
+          case 9:
+            // Save message before emitting
+
+            io.to(room).emit('chat_message_from_user', {
+              message: message,
+              _id: _id,
+              username: username
+            });
+            console.log('room in chat:', room);
+            _context6.next = 16;
+            break;
+          case 13:
+            _context6.prev = 13;
+            _context6.t0 = _context6["catch"](1);
+            // Handle errors gracefully, e.g., log the error, inform the user, etc.
+            console.error('Error processing message:', _context6.t0);
+          case 16:
           case "end":
             return _context6.stop();
         }
-      }, _callee6);
+      }, _callee6, null, [[1, 13]]);
     }));
     return function (_x6) {
       return _ref6.apply(this, arguments);
     };
   }());
-  socket.on("isAdminInput", /*#__PURE__*/function () {
-    var _ref7 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(adminmsg) {
-      var content;
+  socket.on("isAdminJoinRoom", /*#__PURE__*/function () {
+    var _ref7 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(userid) {
+      var _yield$joinRoom, socketid;
       return _regeneratorRuntime().wrap(function _callee7$(_context7) {
         while (1) switch (_context7.prev = _context7.next) {
           case 0:
-            content = adminmsg.content;
-            console.log(room, content);
-            io.to(room).emit('chatMessageFromPayoor', content);
-          case 3:
+            _context7.next = 2;
+            return (0, _joinRoom["default"])(userid);
+          case 2:
+            _yield$joinRoom = _context7.sent;
+            socketid = _yield$joinRoom.socketid;
+            room = socketid;
+            console.log(room);
+            socket.join(room);
+          case 7:
           case "end":
             return _context7.stop();
         }
@@ -328,6 +414,41 @@ io.on('connection', function (socket) {
       return _ref7.apply(this, arguments);
     };
   }());
+  socket.on("isAdminInput", /*#__PURE__*/function () {
+    var _ref8 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8(adminmsg) {
+      var content;
+      return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+        while (1) switch (_context8.prev = _context8.next) {
+          case 0:
+            content = adminmsg.content;
+            try {
+              console.log(room, content); // Log message content before saving
+
+              // Implement logic to save the admin message (if needed)
+              // This could involve saving the content, timestamp, room, etc.
+              // await saveAdminMessage(adminmsg); // Example for saving
+
+              io.to(room).emit('chatMessageFromPayoor', content);
+            } catch (error) {
+              // Handle errors gracefully, e.g., log the error
+              console.error('Error processing admin message:', error);
+            }
+          case 2:
+          case "end":
+            return _context8.stop();
+        }
+      }, _callee8);
+    }));
+    return function (_x8) {
+      return _ref8.apply(this, arguments);
+    };
+  }());
+  socket.on('disconnect', function () {
+    //socket.leave(room);
+
+    //console.log('user left room:', room)
+    console.log('A user disconnected:', socket.id);
+  });
 });
 mongoose.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
