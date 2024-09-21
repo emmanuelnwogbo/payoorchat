@@ -18,7 +18,7 @@ async function createVerificationCheck(code, number) {
             to: number
         });
 
-    console.log(verificationCheck);
+   // console.log(verificationCheck);
 
     return {
         status: verificationCheck.status,

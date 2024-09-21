@@ -90,7 +90,9 @@ app.post('/upload', _verifyToken["default"], function (req, res) {
       image = _req$body.image,
       filename = _req$body.filename;
     var authData = req.authData;
-    console.log(authData._id);
+
+    // console.log(authData._id);
+
     if (!image || !filename) {
       return res.status(400).send('Image and filename are required');
     }
@@ -154,48 +156,47 @@ io.on('connection', function (socket) {
       return _regeneratorRuntime().wrap(function _callee2$(_context2) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
-            jwt = jwtData.jwt;
-            console.log('jwt', jwt);
+            jwt = jwtData.jwt; // console.log('jwt', jwt)
             if (!(jwt === null)) {
-              _context2.next = 9;
+              _context2.next = 8;
               break;
             }
             room = socket.id;
             socket.join(room);
             message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
             io.to(room).emit("unauthenticated", message);
-            _context2.next = 33;
+            _context2.next = 32;
             break;
-          case 9:
+          case 8:
             if (!(jwt !== null)) {
-              _context2.next = 33;
+              _context2.next = 32;
               break;
             }
-            _context2.next = 12;
+            _context2.next = 11;
             return (0, _getValidUser["default"])(jwt);
-          case 12:
+          case 11:
             user = _context2.sent;
             if (!(user === null)) {
-              _context2.next = 20;
+              _context2.next = 19;
               break;
             }
             room = socket.id;
             socket.join(room);
             _message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
             io.to(room).emit("unauthenticated", _message);
-            _context2.next = 33;
+            _context2.next = 32;
             break;
-          case 20:
-            _context2.next = 22;
+          case 19:
+            _context2.next = 21;
             return (0, _getValidUser["default"])(jwt);
-          case 22:
+          case 21:
             _yield$getValidUser = _context2.sent;
             username = _yield$getValidUser.username;
             phoneNumber = _yield$getValidUser.phoneNumber;
             _id = _yield$getValidUser._id;
-            _context2.next = 28;
+            _context2.next = 27;
             return (0, _createRoom["default"])(_id, socket.id, phoneNumber);
-          case 28:
+          case 27:
             _yield$createRoom = _context2.sent;
             socketid = _yield$createRoom.socketid;
             room = socketid;
@@ -210,7 +211,7 @@ io.on('connection', function (socket) {
               });
               io.to(room).emit('authenticated', "Greetings ".concat(username, ", I'm here to accept your orders"));
             }
-          case 33:
+          case 32:
           case "end":
             return _context2.stop();
         }
@@ -349,93 +350,93 @@ io.on('connection', function (socket) {
       return _ref5.apply(this, arguments);
     };
   }());
-  socket.on("isLoggedInInput", /*#__PURE__*/function () {
-    var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(usermsg) {
-      var jwt, message, _yield$getValidUser2, _id, username;
+  socket.on("joinroom", /*#__PURE__*/function () {
+    var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(msg) {
+      var jwt, _yield$getValidUser2, _id, username;
       return _regeneratorRuntime().wrap(function _callee6$(_context6) {
         while (1) switch (_context6.prev = _context6.next) {
           case 0:
-            jwt = usermsg.jwt, message = usermsg.message;
-            _context6.prev = 1;
-            _context6.next = 4;
+            jwt = msg.jwt;
+            _context6.next = 3;
             return (0, _getValidUser["default"])(jwt);
-          case 4:
+          case 3:
             _yield$getValidUser2 = _context6.sent;
             _id = _yield$getValidUser2._id;
             username = _yield$getValidUser2.username;
-            _context6.next = 9;
-            return (0, _saveMessage["default"])(usermsg);
-          case 9:
-            // Save message before emitting
-
-            io.to(room).emit('chat_message_from_user', {
-              message: message,
-              _id: _id,
-              username: username
-            });
-            console.log('room in chat:', room);
-            _context6.next = 16;
-            break;
-          case 13:
-            _context6.prev = 13;
-            _context6.t0 = _context6["catch"](1);
-            // Handle errors gracefully, e.g., log the error, inform the user, etc.
-            console.error('Error processing message:', _context6.t0);
-          case 16:
+            //console.log('joinroom', msg, _id, username);
+            socket.join("".concat(_id));
+          case 7:
           case "end":
             return _context6.stop();
         }
-      }, _callee6, null, [[1, 13]]);
+      }, _callee6);
     }));
     return function (_x6) {
       return _ref6.apply(this, arguments);
     };
   }());
-  socket.on("isAdminJoinRoom", /*#__PURE__*/function () {
-    var _ref7 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(userid) {
-      var _yield$joinRoom, socketid;
+  socket.on("isLoggedInInput", /*#__PURE__*/function () {
+    var _ref7 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(usermsg) {
+      var jwt, message, _yield$getValidUser3, _id, username;
       return _regeneratorRuntime().wrap(function _callee7$(_context7) {
         while (1) switch (_context7.prev = _context7.next) {
           case 0:
-            _context7.next = 2;
-            return (0, _joinRoom["default"])(userid);
-          case 2:
-            _yield$joinRoom = _context7.sent;
-            socketid = _yield$joinRoom.socketid;
-            room = socketid;
-            console.log(room);
-            socket.join(room);
-          case 7:
+            jwt = usermsg.jwt, message = usermsg.message;
+            _context7.prev = 1;
+            _context7.next = 4;
+            return (0, _getValidUser["default"])(jwt);
+          case 4:
+            _yield$getValidUser3 = _context7.sent;
+            _id = _yield$getValidUser3._id;
+            username = _yield$getValidUser3.username;
+            _context7.next = 9;
+            return (0, _saveMessage["default"])(usermsg);
+          case 9:
+            // Save message before emitting
+
+            io.to("".concat(_id)).emit('chat_message_from_user', {
+              message: message,
+              _id: _id,
+              username: username
+            });
+
+            // console.log('room in chat:', room);
+            _context7.next = 15;
+            break;
+          case 12:
+            _context7.prev = 12;
+            _context7.t0 = _context7["catch"](1);
+            // Handle errors gracefully, e.g., log the error, inform the user, etc.
+            console.error('Error processing message:', _context7.t0);
+          case 15:
           case "end":
             return _context7.stop();
         }
-      }, _callee7);
+      }, _callee7, null, [[1, 12]]);
     }));
     return function (_x7) {
       return _ref7.apply(this, arguments);
     };
   }());
-  socket.on("isAdminInput", /*#__PURE__*/function () {
-    var _ref8 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8(adminmsg) {
-      var content;
+  socket.on("isAdminJoinRoom", /*#__PURE__*/function () {
+    var _ref8 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8(userid) {
+      var _yield$joinRoom, socketid;
       return _regeneratorRuntime().wrap(function _callee8$(_context8) {
         while (1) switch (_context8.prev = _context8.next) {
           case 0:
-            content = adminmsg.content;
-            try {
-              console.log(room, content); // Log message content before saving
-
-              // Implement logic to save the admin message (if needed)
-              // This could involve saving the content, timestamp, room, etc.
-              // await saveAdminMessage(adminmsg); // Example for saving
-
-              //io.to(room).emit('chatMessageFromPayoor', content);
-              io.emit('chatMessageFromPayoor', content);
-            } catch (error) {
-              // Handle errors gracefully, e.g., log the error
-              console.error('Error processing admin message:', error);
-            }
+            _context8.next = 2;
+            return (0, _joinRoom["default"])(userid);
           case 2:
+            _yield$joinRoom = _context8.sent;
+            socketid = _yield$joinRoom.socketid;
+            room = socketid;
+
+            //console.log(room);
+
+            //socket.join(room);
+            console.log('userid', userid);
+            socket.join("".concat(userid));
+          case 7:
           case "end":
             return _context8.stop();
         }
@@ -445,11 +446,41 @@ io.on('connection', function (socket) {
       return _ref8.apply(this, arguments);
     };
   }());
+  socket.on("isAdminInput", /*#__PURE__*/function () {
+    var _ref9 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(adminmsg) {
+      var content, userid;
+      return _regeneratorRuntime().wrap(function _callee9$(_context9) {
+        while (1) switch (_context9.prev = _context9.next) {
+          case 0:
+            content = adminmsg.content, userid = adminmsg.userid;
+            try {
+              // console.log(content, userid); // Log message content before saving
+
+              // Implement logic to save the admin message (if needed)
+              // This could involve saving the content, timestamp, room, etc.
+              // await saveAdminMessage(adminmsg); // Example for saving
+
+              io.to("".concat(userid)).emit('chatMessageFromPayoor', content);
+              //io.emit('chatMessageFromPayoor', content);
+            } catch (error) {
+              // Handle errors gracefully, e.g., log the error
+              console.error('Error processing admin message:', error);
+            }
+          case 2:
+          case "end":
+            return _context9.stop();
+        }
+      }, _callee9);
+    }));
+    return function (_x9) {
+      return _ref9.apply(this, arguments);
+    };
+  }());
   socket.on('disconnect', function () {
     //socket.leave(room);
 
     //console.log('user left room:', room)
-    console.log('A user disconnected:', socket.id);
+    // console.log('A user disconnected:', socket.id);
   });
 });
 mongoose.connect(process.env.MONGO_URL, {
@@ -460,7 +491,7 @@ mongoose.connect(process.env.MONGO_URL, {
     if (error) {
       return console.error('Error starting server:', error);
     }
-    console.log("Server started on port ".concat(PORT));
+    // console.log(`Server started on port ${PORT}`);
   });
 })["catch"](function (error) {
   console.error('Error connecting to MongoDB:', error);

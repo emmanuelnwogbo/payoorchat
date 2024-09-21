@@ -32,9 +32,8 @@ function _createVerification() {
           });
         case 2:
           verification = _context.sent;
-          console.log(verification, 'done');
           return _context.abrupt("return", verification.status);
-        case 5:
+        case 4:
         case "end":
           return _context.stop();
       }

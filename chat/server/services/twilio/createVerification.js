@@ -16,7 +16,7 @@ async function createVerification(number) {
             to: number,
         });
 
-        console.log(verification, 'done');
+       // console.log(verification, 'done');
 
     return verification.status;
 }

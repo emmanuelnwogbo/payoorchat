@@ -35,7 +35,7 @@ async function saveMessage(msg) {
             });
         }
 
-        console.log(newMessage);
+       // console.log(newMessage);
 
         await newMessage.save();
     } catch (error) {

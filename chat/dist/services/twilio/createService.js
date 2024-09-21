@@ -30,8 +30,7 @@ function _createService() {
           });
         case 2:
           service = _context.sent;
-          console.log(service.sid);
-        case 4:
+        case 3:
         case "end":
           return _context.stop();
       }

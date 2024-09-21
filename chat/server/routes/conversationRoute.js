@@ -26,7 +26,7 @@ conversationRoute.get('/getconversation/admin', async (req, res) => {
         .limit(Number(limit))
         .populate('user', 'username');
 
-    console.log('conversation:', conversation, 'conversation:')
+   // console.log('conversation:', conversation, 'conversation:')
 
     res.status(200).send({ conversation });
 });
@@ -42,7 +42,7 @@ conversationRoute.post('/saveconversation', async (req, res) => {
 
         const payload = getPayloadFromToken(jwt);
 
-        console.log(body);
+       // console.log(body);
 
         const savePromises = body.map(msg => {
             const newMessage = new Message({

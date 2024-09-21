@@ -98,7 +98,7 @@ app.post('/upload', verifyToken, (req, res) => {
 
     const { authData } = req;
 
-    console.log(authData._id);
+    // console.log(authData._id);
 
     if (!image || !filename) {
       return res.status(400).send('Image and filename are required');
@@ -143,7 +143,7 @@ io.on('connection', socket => {
   socket.on("initConnect", async (jwtData) => {
     const { jwt } = jwtData;
 
-    console.log('jwt', jwt)
+    // console.log('jwt', jwt)
 
     if (jwt === null) {
       room = socket.id;
@@ -249,6 +249,14 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on("joinroom", async (msg) => {
+    const jwt = msg.jwt;
+
+    const { _id, username } = await getValidUser(jwt);
+    //console.log('joinroom', msg, _id, username);
+    socket.join(`${_id}`);
+  })
+
   socket.on("isLoggedInInput", async (usermsg) => {
     const { jwt, message } = usermsg;
 
@@ -257,9 +265,9 @@ io.on('connection', socket => {
 
       await saveMessage(usermsg); // Save message before emitting
 
-      io.to(room).emit('chat_message_from_user', { message, _id, username });
+      io.to(`${_id}`).emit('chat_message_from_user', { message, _id, username });
 
-      console.log('room in chat:', room);
+      // console.log('room in chat:', room);
     } catch (error) {
       // Handle errors gracefully, e.g., log the error, inform the user, etc.
       console.error('Error processing message:', error);
@@ -271,23 +279,25 @@ io.on('connection', socket => {
 
     room = socketid;
 
-    console.log(room);
+    //console.log(room);
 
-    socket.join(room);
+    //socket.join(room);
+    console.log('userid', userid)
+    socket.join(`${userid}`);
   });
 
   socket.on("isAdminInput", async (adminmsg) => {
-    const { content } = adminmsg;
+    const { content, userid } = adminmsg;
 
     try {
-      console.log(room, content); // Log message content before saving
+      // console.log(content, userid); // Log message content before saving
 
       // Implement logic to save the admin message (if needed)
       // This could involve saving the content, timestamp, room, etc.
       // await saveAdminMessage(adminmsg); // Example for saving
 
-      //io.to(room).emit('chatMessageFromPayoor', content);
-      io.emit('chatMessageFromPayoor', content);
+      io.to(`${userid}`).emit('chatMessageFromPayoor', content);
+      //io.emit('chatMessageFromPayoor', content);
     } catch (error) {
       // Handle errors gracefully, e.g., log the error
       console.error('Error processing admin message:', error);
@@ -298,7 +308,7 @@ io.on('connection', socket => {
     //socket.leave(room);
 
     //console.log('user left room:', room)
-    console.log('A user disconnected:', socket.id);
+    // console.log('A user disconnected:', socket.id);
   });
 });
 
@@ -311,7 +321,7 @@ mongoose.connect(process.env.MONGO_URL, {
       if (error) {
         return console.error('Error starting server:', error);
       }
-      console.log(`Server started on port ${PORT}`);
+      // console.log(`Server started on port ${PORT}`);
     });
   })
   .catch((error) => {

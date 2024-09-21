@@ -13,7 +13,7 @@ async function createService() {
         friendlyName: "Payoor Service", //Payoor
     });
 
-    console.log(service.sid);
+   // console.log(service.sid);
 }
 
 //createService();

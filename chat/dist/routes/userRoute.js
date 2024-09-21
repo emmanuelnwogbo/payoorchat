@@ -22,9 +22,9 @@ userRoute.get('/getusers', /*#__PURE__*/function () {
           return _user["default"].find();
         case 2:
           users = _context.sent;
-          console.log(users);
+          // console.log(users);
           res.status(200).json(users);
-        case 5:
+        case 4:
         case "end":
           return _context.stop();
       }
@@ -47,8 +47,7 @@ userRoute.get('/getuser', /*#__PURE__*/function () {
           });
         case 3:
           user = _context2.sent;
-          console.log(user);
-        case 5:
+        case 4:
         case "end":
           return _context2.stop();
       }

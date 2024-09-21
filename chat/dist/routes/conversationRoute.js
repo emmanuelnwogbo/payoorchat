@@ -53,11 +53,12 @@ conversationRoute.get('/getconversation/admin', /*#__PURE__*/function () {
           }).sort('-timestamp').skip((page - 1) * limit).limit(Number(limit)).populate('user', 'username');
         case 5:
           conversation = _context2.sent;
-          console.log('conversation:', conversation, 'conversation:');
+          // console.log('conversation:', conversation, 'conversation:')
+
           res.status(200).send({
             conversation: conversation
           });
-        case 8:
+        case 7:
         case "end":
           return _context2.stop();
       }
@@ -84,8 +85,7 @@ conversationRoute.post('/saveconversation', /*#__PURE__*/function () {
             message: 'Invalid input: body must be an array'
           }));
         case 5:
-          payload = (0, _getPayloadFromToken["default"])(jwt);
-          console.log(body);
+          payload = (0, _getPayloadFromToken["default"])(jwt); // console.log(body);
           savePromises = body.map(function (msg) {
             var newMessage = new _message["default"]({
               user: payload._id,
@@ -98,26 +98,26 @@ conversationRoute.post('/saveconversation', /*#__PURE__*/function () {
             });
             return newMessage.save();
           });
-          _context3.next = 10;
+          _context3.next = 9;
           return Promise.all(savePromises);
-        case 10:
+        case 9:
           res.status(200).send({
             message: 'All messages saved successfully'
           });
-          _context3.next = 17;
+          _context3.next = 16;
           break;
-        case 13:
-          _context3.prev = 13;
+        case 12:
+          _context3.prev = 12;
           _context3.t0 = _context3["catch"](0);
           console.error('Error saving conversation:', _context3.t0);
           res.status(500).send({
             message: 'An error occurred while saving the conversation'
           });
-        case 17:
+        case 16:
         case "end":
           return _context3.stop();
       }
-    }, _callee3, null, [[0, 13]]);
+    }, _callee3, null, [[0, 12]]);
   }));
   return function (_x5, _x6) {
     return _ref3.apply(this, arguments);

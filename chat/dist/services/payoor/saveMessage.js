@@ -47,21 +47,20 @@ function _saveMessage() {
             isAdmin: !isUser
           });
         case 10:
-          console.log(newMessage);
-          _context.next = 13;
+          _context.next = 12;
           return newMessage.save();
-        case 13:
-          _context.next = 18;
+        case 12:
+          _context.next = 17;
           break;
-        case 15:
-          _context.prev = 15;
+        case 14:
+          _context.prev = 14;
           _context.t0 = _context["catch"](0);
           console, log(_context.t0);
-        case 18:
+        case 17:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 15]]);
+    }, _callee, null, [[0, 14]]);
   }));
   return _saveMessage.apply(this, arguments);
 }

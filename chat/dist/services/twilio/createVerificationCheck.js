@@ -33,12 +33,11 @@ function _createVerificationCheck() {
           });
         case 3:
           verificationCheck = _context.sent;
-          console.log(verificationCheck);
           return _context.abrupt("return", {
             status: verificationCheck.status,
             number: verificationCheck.to
           });
-        case 6:
+        case 5:
         case "end":
           return _context.stop();
       }
