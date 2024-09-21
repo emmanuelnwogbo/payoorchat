@@ -16,7 +16,7 @@ const corsOrginArray = [
   'http://localhost:3000',
   'https://dfa1-149-22-81-214.ngrok-free.app',
   'https://chat.payoor.shop',
-  "http://localhost:52100",
+  "http://localhost:49192",
 ]
 
 const io = require('socket.io')(server, {
@@ -142,6 +142,8 @@ io.on('connection', socket => {
 
   socket.on("initConnect", async (jwtData) => {
     const { jwt } = jwtData;
+
+    console.log('jwt', jwt)
 
     if (jwt === null) {
       room = socket.id;
@@ -284,7 +286,8 @@ io.on('connection', socket => {
       // This could involve saving the content, timestamp, room, etc.
       // await saveAdminMessage(adminmsg); // Example for saving
 
-      io.to(room).emit('chatMessageFromPayoor', content);
+      //io.to(room).emit('chatMessageFromPayoor', content);
+      io.emit('chatMessageFromPayoor', content);
     } catch (error) {
       // Handle errors gracefully, e.g., log the error
       console.error('Error processing admin message:', error);

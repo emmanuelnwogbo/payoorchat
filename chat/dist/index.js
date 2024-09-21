@@ -35,7 +35,7 @@ var app = express();
 var server = require('http').createServer(app);
 var mongoose = require('mongoose');
 var crypto = require('crypto');
-var corsOrginArray = ['http://localhost:3000', 'https://dfa1-149-22-81-214.ngrok-free.app', 'https://chat.payoor.shop', "http://localhost:52100"];
+var corsOrginArray = ['http://localhost:3000', 'https://dfa1-149-22-81-214.ngrok-free.app', 'https://chat.payoor.shop', "http://localhost:49192"];
 var io = require('socket.io')(server, {
   cors: {
     origin: corsOrginArray,
@@ -155,46 +155,47 @@ io.on('connection', function (socket) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
             jwt = jwtData.jwt;
+            console.log('jwt', jwt);
             if (!(jwt === null)) {
-              _context2.next = 8;
+              _context2.next = 9;
               break;
             }
             room = socket.id;
             socket.join(room);
             message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
             io.to(room).emit("unauthenticated", message);
-            _context2.next = 32;
+            _context2.next = 33;
             break;
-          case 8:
+          case 9:
             if (!(jwt !== null)) {
-              _context2.next = 32;
+              _context2.next = 33;
               break;
             }
-            _context2.next = 11;
+            _context2.next = 12;
             return (0, _getValidUser["default"])(jwt);
-          case 11:
+          case 12:
             user = _context2.sent;
             if (!(user === null)) {
-              _context2.next = 19;
+              _context2.next = 20;
               break;
             }
             room = socket.id;
             socket.join(room);
             _message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
             io.to(room).emit("unauthenticated", _message);
-            _context2.next = 32;
+            _context2.next = 33;
             break;
-          case 19:
-            _context2.next = 21;
+          case 20:
+            _context2.next = 22;
             return (0, _getValidUser["default"])(jwt);
-          case 21:
+          case 22:
             _yield$getValidUser = _context2.sent;
             username = _yield$getValidUser.username;
             phoneNumber = _yield$getValidUser.phoneNumber;
             _id = _yield$getValidUser._id;
-            _context2.next = 27;
+            _context2.next = 28;
             return (0, _createRoom["default"])(_id, socket.id, phoneNumber);
-          case 27:
+          case 28:
             _yield$createRoom = _context2.sent;
             socketid = _yield$createRoom.socketid;
             room = socketid;
@@ -209,7 +210,7 @@ io.on('connection', function (socket) {
               });
               io.to(room).emit('authenticated', "Greetings ".concat(username, ", I'm here to accept your orders"));
             }
-          case 32:
+          case 33:
           case "end":
             return _context2.stop();
         }
@@ -428,7 +429,8 @@ io.on('connection', function (socket) {
               // This could involve saving the content, timestamp, room, etc.
               // await saveAdminMessage(adminmsg); // Example for saving
 
-              io.to(room).emit('chatMessageFromPayoor', content);
+              //io.to(room).emit('chatMessageFromPayoor', content);
+              io.emit('chatMessageFromPayoor', content);
             } catch (error) {
               // Handle errors gracefully, e.g., log the error
               console.error('Error processing admin message:', error);
