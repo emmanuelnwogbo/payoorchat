@@ -18,6 +18,7 @@ var _joinRoom = _interopRequireDefault(require("./services/payoor/joinRoom"));
 var _verifyToken = _interopRequireDefault(require("./services/payoor/verifyToken"));
 var _file = _interopRequireDefault(require("./models/file"));
 var _userRoute = _interopRequireDefault(require("./routes/userRoute"));
+var _messageRoute = _interopRequireDefault(require("./routes/messageRoute"));
 var _conversationRoute = _interopRequireDefault(require("./routes/conversationRoute"));
 var _createVerification = _interopRequireDefault(require("./services/twilio/createVerification"));
 var _createVerificationCheck = _interopRequireDefault(require("./services/twilio/createVerificationCheck"));
@@ -35,7 +36,7 @@ var app = express();
 var server = require('http').createServer(app);
 var mongoose = require('mongoose');
 var crypto = require('crypto');
-var corsOrginArray = ['http://localhost:3000', 'https://dfa1-149-22-81-214.ngrok-free.app', 'https://chat.payoor.shop', "http://localhost:49192"];
+var corsOrginArray = ['http://localhost:3000', 'https://dfa1-149-22-81-214.ngrok-free.app', 'https://chat.payoor.shop', "http://localhost:50258"];
 var io = require('socket.io')(server, {
   cors: {
     origin: corsOrginArray,
@@ -53,6 +54,7 @@ app.use((0, _cors["default"])(corsOptions));
 app.use(express.json());
 app.use(_userRoute["default"]);
 app.use(_conversationRoute["default"]);
+app.use(_messageRoute["default"]);
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
@@ -152,66 +154,17 @@ io.on('connection', function (socket) {
   var room;
   socket.on("initConnect", /*#__PURE__*/function () {
     var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(jwtData) {
-      var jwt, message, user, _message, _yield$getValidUser, username, phoneNumber, _id, _yield$createRoom, socketid;
+      var jwt, message;
       return _regeneratorRuntime().wrap(function _callee2$(_context2) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
-            jwt = jwtData.jwt; // console.log('jwt', jwt)
-            if (!(jwt === null)) {
-              _context2.next = 8;
-              break;
-            }
-            room = socket.id;
-            socket.join(room);
-            message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
-            io.to(room).emit("unauthenticated", message);
-            _context2.next = 32;
-            break;
-          case 8:
-            if (!(jwt !== null)) {
-              _context2.next = 32;
-              break;
-            }
-            _context2.next = 11;
-            return (0, _getValidUser["default"])(jwt);
-          case 11:
-            user = _context2.sent;
-            if (!(user === null)) {
-              _context2.next = 19;
-              break;
-            }
-            room = socket.id;
-            socket.join(room);
-            _message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
-            io.to(room).emit("unauthenticated", _message);
-            _context2.next = 32;
-            break;
-          case 19:
-            _context2.next = 21;
-            return (0, _getValidUser["default"])(jwt);
-          case 21:
-            _yield$getValidUser = _context2.sent;
-            username = _yield$getValidUser.username;
-            phoneNumber = _yield$getValidUser.phoneNumber;
-            _id = _yield$getValidUser._id;
-            _context2.next = 27;
-            return (0, _createRoom["default"])(_id, socket.id, phoneNumber);
-          case 27:
-            _yield$createRoom = _context2.sent;
-            socketid = _yield$createRoom.socketid;
-            room = socketid;
-            socket.join(room);
-            if (username.length === 0) {
-              io.to(room).emit('getusername', "Looks like you still haven't told me your name");
-            } else {
-              io.to(room).emit('loggedIn', {
-                username: username,
-                phoneNumber: phoneNumber,
-                jwt: jwt
-              });
-              io.to(room).emit('authenticated', "Greetings ".concat(username, ", I'm here to accept your orders"));
-            }
-          case 32:
+            jwt = jwtData.jwt;
+            console.log(jwt);
+            if (jwt === null) {
+              message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
+              io.to(room).emit("unauthenticated", message);
+            } else {}
+          case 3:
           case "end":
             return _context2.stop();
         }
@@ -221,261 +174,129 @@ io.on('connection', function (socket) {
       return _ref2.apply(this, arguments);
     };
   }());
-  socket.on("isPhonenumberInput", /*#__PURE__*/function () {
-    var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(usermsg) {
-      var messageValue, usernum, pending;
-      return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-        while (1) switch (_context3.prev = _context3.next) {
-          case 0:
-            messageValue = usermsg.message;
-            usernum = (0, _validatePhoneNumber["default"])(messageValue);
-            io.to(room).emit('payoorIsTyping');
-            if (!(usernum !== null && usernum !== void 0 && usernum.isValid && usernum.country === 'NG')) {
-              _context3.next = 10;
-              break;
-            }
-            _context3.next = 6;
-            return (0, _createVerification2["default"])(usernum.formattedNumber);
-          case 6:
-            pending = _context3.sent;
-            if (pending === 'pending') {
-              io.to(room).emit('pendingotp', "I sent you an OTP, please check your SMS and send it back to confirm you own this number");
-              io.to(room).emit('keepusernumberforotp', messageValue);
-            }
-            _context3.next = 11;
-            break;
-          case 10:
-            io.to(room).emit('error', 'Invalid phone number or unsupported country.');
-          case 11:
-          case "end":
-            return _context3.stop();
-        }
-      }, _callee3);
-    }));
-    return function (_x3) {
-      return _ref3.apply(this, arguments);
-    };
-  }());
-  socket.on("isOtpInput", /*#__PURE__*/function () {
-    var _ref4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(usermsg) {
-      var messageValue, userPhoneNumber, usernum, result, phoneNumber, _yield$generateJWT, token, user, isNewUser, _tokens, username, _phoneNumber, tokens, latestToken;
-      return _regeneratorRuntime().wrap(function _callee4$(_context4) {
-        while (1) switch (_context4.prev = _context4.next) {
-          case 0:
-            messageValue = usermsg.message;
-            userPhoneNumber = (usermsg.userPhoneNumber || '').trim();
-            usernum = (0, _validatePhoneNumber["default"])(userPhoneNumber);
-            io.to(room).emit('payoorIsTyping');
-            if (!(usernum !== null && usernum !== void 0 && usernum.isValid && usernum.country === 'NG')) {
-              _context4.next = 20;
-              break;
-            }
-            _context4.next = 7;
-            return (0, _createVerificationCheck2["default"])(messageValue, usernum.formattedNumber);
-          case 7:
-            result = _context4.sent;
-            //{ status: "approved", number: usernum.formattedNumber }; // Consider awaiting actual verification
-            phoneNumber = "".concat(result.number);
-            if (!(result.status === "approved")) {
-              _context4.next = 18;
-              break;
-            }
-            _context4.next = 12;
-            return (0, _generateJWT["default"])(phoneNumber);
-          case 12:
-            _yield$generateJWT = _context4.sent;
-            token = _yield$generateJWT.token;
-            user = _yield$generateJWT.user;
-            isNewUser = _yield$generateJWT.isNewUser;
-            io.to(room).emit('saveJWT', token);
-            if (user.username.length === 0) {
-              io.to(room).emit('receivedotp', "Your number ".concat(result.number, " has been saved.\nPlease let us know your name"));
-              io.to(room).emit('getusername');
-            } else {
-              username = user.username, _phoneNumber = user.phoneNumber, tokens = user.tokens;
-              latestToken = (_tokens = tokens[tokens.length - 1]) === null || _tokens === void 0 ? void 0 : _tokens.token; // Use optional chaining
-              io.to(room).emit('authenticated', "Greetings ".concat(username, ", I'm here to accept your orders"));
-              io.to(room).emit('loggedIn', {
-                username: username,
-                phoneNumber: _phoneNumber,
-                jwt: latestToken
-              });
-            }
-          case 18:
-            _context4.next = 21;
-            break;
-          case 20:
-            // Optionally, handle invalid phone numbers or non-NG numbers
-            io.to(currentroom).emit('error', 'Invalid phone number or unsupported country.');
-          case 21:
-          case "end":
-            return _context4.stop();
-        }
-      }, _callee4);
-    }));
-    return function (_x4) {
-      return _ref4.apply(this, arguments);
-    };
-  }());
-  socket.on("isNameinput", /*#__PURE__*/function () {
-    var _ref5 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee5(usermsg) {
-      var username, jwt, updatedUser, _tokens2, _username, phoneNumber, tokens, _id, latestToken;
-      return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-        while (1) switch (_context5.prev = _context5.next) {
-          case 0:
-            username = usermsg.message;
-            jwt = usermsg.jwt;
-            _context5.next = 4;
-            return (0, _saveUserName["default"])(username, jwt);
-          case 4:
-            updatedUser = _context5.sent;
-            io.to(room).emit('payoorIsTyping');
-            if (updatedUser) {
-              _username = updatedUser.username, phoneNumber = updatedUser.phoneNumber, tokens = updatedUser.tokens, _id = updatedUser._id;
-              latestToken = (_tokens2 = tokens[tokens.length - 1]) === null || _tokens2 === void 0 ? void 0 : _tokens2.token;
-              io.to(room).emit('loggedIn', {
-                username: _username,
-                phoneNumber: phoneNumber,
-                jwt: latestToken
-              });
-              io.to(room).emit('authenticated', "Greetings ".concat(_username, ", I'm here to accept your orders"));
-            }
-          case 7:
-          case "end":
-            return _context5.stop();
-        }
-      }, _callee5);
-    }));
-    return function (_x5) {
-      return _ref5.apply(this, arguments);
-    };
-  }());
-  socket.on("joinroom", /*#__PURE__*/function () {
-    var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(msg) {
-      var jwt, _yield$getValidUser2, _id, username;
-      return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-        while (1) switch (_context6.prev = _context6.next) {
-          case 0:
-            jwt = msg.jwt;
-            _context6.next = 3;
-            return (0, _getValidUser["default"])(jwt);
-          case 3:
-            _yield$getValidUser2 = _context6.sent;
-            _id = _yield$getValidUser2._id;
-            username = _yield$getValidUser2.username;
-            //console.log('joinroom', msg, _id, username);
-            socket.join("".concat(_id));
-          case 7:
-          case "end":
-            return _context6.stop();
-        }
-      }, _callee6);
-    }));
-    return function (_x6) {
-      return _ref6.apply(this, arguments);
-    };
-  }());
-  socket.on("isLoggedInInput", /*#__PURE__*/function () {
-    var _ref7 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(usermsg) {
-      var jwt, message, _yield$getValidUser3, _id, username;
-      return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-        while (1) switch (_context7.prev = _context7.next) {
-          case 0:
-            jwt = usermsg.jwt, message = usermsg.message;
-            _context7.prev = 1;
-            _context7.next = 4;
-            return (0, _getValidUser["default"])(jwt);
-          case 4:
-            _yield$getValidUser3 = _context7.sent;
-            _id = _yield$getValidUser3._id;
-            username = _yield$getValidUser3.username;
-            _context7.next = 9;
-            return (0, _saveMessage["default"])(usermsg);
-          case 9:
-            // Save message before emitting
 
-            io.to("".concat(_id)).emit('chat_message_from_user', {
-              message: message,
-              _id: _id,
-              username: username
-            });
-
-            // console.log('room in chat:', room);
-            _context7.next = 15;
-            break;
-          case 12:
-            _context7.prev = 12;
-            _context7.t0 = _context7["catch"](1);
-            // Handle errors gracefully, e.g., log the error, inform the user, etc.
-            console.error('Error processing message:', _context7.t0);
-          case 15:
-          case "end":
-            return _context7.stop();
+  /*socket.on("initConnect", async (jwtData) => {
+    const { jwt } = jwtData;
+      // console.log('jwt', jwt)
+      if (jwt === null) {
+      room = socket.id;
+      socket.join(room);
+        const message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
+        io.to(room).emit("unauthenticated", message);
+    } else if (jwt !== null) {
+      const user = await getValidUser(jwt);
+        if (user === null) {
+        room = socket.id;
+        socket.join(room);
+          const message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
+          io.to(room).emit("unauthenticated", message);
+      } else {
+        const { username, phoneNumber, _id } = await getValidUser(jwt);
+        const { socketid } = await createRoom(_id, socket.id, phoneNumber);
+          room = socketid;
+          socket.join(room);
+          if (username.length === 0) {
+          io.to(room).emit('getusername', `Looks like you still haven't told me your name`);
+        } else {
+          io.to(room).emit('loggedIn', { username, phoneNumber, jwt });
+          io.to(room).emit('authenticated', `Greetings ${username}, I'm here to accept your orders`);
         }
-      }, _callee7, null, [[1, 12]]);
-    }));
-    return function (_x7) {
-      return _ref7.apply(this, arguments);
-    };
-  }());
-  socket.on("isAdminJoinRoom", /*#__PURE__*/function () {
-    var _ref8 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8(userid) {
-      var _yield$joinRoom, socketid;
-      return _regeneratorRuntime().wrap(function _callee8$(_context8) {
-        while (1) switch (_context8.prev = _context8.next) {
-          case 0:
-            _context8.next = 2;
-            return (0, _joinRoom["default"])(userid);
-          case 2:
-            _yield$joinRoom = _context8.sent;
-            socketid = _yield$joinRoom.socketid;
-            room = socketid;
-
-            //console.log(room);
-
-            //socket.join(room);
-            console.log('userid', userid);
-            socket.join("".concat(userid));
-          case 7:
-          case "end":
-            return _context8.stop();
+      }
+      }
+  });
+    socket.on("isPhonenumberInput", async (usermsg) => {
+    const messageValue = usermsg.message;
+    const usernum = validatePhoneNumber(messageValue);
+      io.to(room).emit('payoorIsTyping');
+      if (usernum?.isValid && usernum.country === 'NG') {
+      const pending = await createVerificationTest(usernum.formattedNumber);
+        if (pending === 'pending') {
+          io.to(room).emit('pendingotp', "I sent you an OTP, please check your SMS and send it back to confirm you own this number");
+        io.to(room).emit('keepusernumberforotp', messageValue);
+      }
+    } else {
+      io.to(room).emit('error', 'Invalid phone number or unsupported country.');
+    }
+  });
+    socket.on("isOtpInput", async (usermsg) => {
+    const messageValue = usermsg.message;
+    const userPhoneNumber = (usermsg.userPhoneNumber || '').trim();
+      const usernum = validatePhoneNumber(userPhoneNumber);
+      io.to(room).emit('payoorIsTyping');
+      if (usernum?.isValid && usernum.country === 'NG') {
+      const result = await createVerificationCheckTest(messageValue, usernum.formattedNumber);//{ status: "approved", number: usernum.formattedNumber }; // Consider awaiting actual verification
+      const phoneNumber = `${result.number}`;
+      if (result.status === "approved") {
+        const { token, user, isNewUser } = await generateJWT(phoneNumber);
+          io.to(room).emit('saveJWT', token);
+          if (user.username.length === 0) {
+          io.to(room).emit('receivedotp', `Your number ${result.number} has been saved.\nPlease let us know your name`);
+          io.to(room).emit('getusername');
+        } else {
+          const { username, phoneNumber, tokens } = user;
+          const latestToken = tokens[tokens.length - 1]?.token; // Use optional chaining
+          io.to(room).emit('authenticated', `Greetings ${username}, I'm here to accept your orders`);
+          io.to(room).emit('loggedIn', { username, phoneNumber, jwt: latestToken });
         }
-      }, _callee8);
-    }));
-    return function (_x8) {
-      return _ref8.apply(this, arguments);
-    };
-  }());
-  socket.on("isAdminInput", /*#__PURE__*/function () {
-    var _ref9 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(adminmsg) {
-      var content, userid;
-      return _regeneratorRuntime().wrap(function _callee9$(_context9) {
-        while (1) switch (_context9.prev = _context9.next) {
-          case 0:
-            content = adminmsg.content, userid = adminmsg.userid;
-            try {
-              // console.log(content, userid); // Log message content before saving
+      }
+    } else {
+      // Optionally, handle invalid phone numbers or non-NG numbers
+      io.to(currentroom).emit('error', 'Invalid phone number or unsupported country.');
+    }
+  });
+    socket.on("isNameinput", async (usermsg) => {
+    const username = usermsg.message;
+    const jwt = usermsg.jwt;
+      const updatedUser = await saveUserName(username, jwt);
+      io.to(room).emit('payoorIsTyping');
+      if (updatedUser) {
+      const { username, phoneNumber, tokens, _id } = updatedUser;
+      const latestToken = tokens[tokens.length - 1]?.token;
+        io.to(room).emit('loggedIn', { username, phoneNumber, jwt: latestToken });
+      io.to(room).emit('authenticated', `Greetings ${username}, I'm here to accept your orders`);
+    }
+  });
+    socket.on("joinroom", async (msg) => {
+    const jwt = msg.jwt;
+      const { _id, username } = await getValidUser(jwt);
+    //console.log('joinroom', msg, _id, username);
+    socket.join(`${_id}`);
+  })
+    socket.on("isLoggedInInput", async (usermsg) => {
+    const { jwt, message } = usermsg;
+      try {
+      const { _id, username } = await getValidUser(jwt);
+        await saveMessage(usermsg); // Save message before emitting
+        io.to(`${_id}`).emit('chat_message_from_user', { message, _id, username });
+        // console.log('room in chat:', room);
+    } catch (error) {
+      // Handle errors gracefully, e.g., log the error, inform the user, etc.
+      console.error('Error processing message:', error);
+    }
+  });
+    socket.on("isAdminJoinRoom", async (userid) => {
+    const { socketid } = await joinRoom(userid);
+      room = socketid;
+      //console.log(room);
+      //socket.join(room);
+    console.log('userid', userid)
+    socket.join(`${userid}`);
+  });
+    socket.on("isAdminInput", async (adminmsg) => {
+    const { content, userid } = adminmsg;
+      try {
+      // console.log(content, userid); // Log message content before saving
+        // Implement logic to save the admin message (if needed)
+      // This could involve saving the content, timestamp, room, etc.
+      // await saveAdminMessage(adminmsg); // Example for saving
+        io.to(`${userid}`).emit('chatMessageFromPayoor', content);
+      //io.emit('chatMessageFromPayoor', content);
+    } catch (error) {
+      // Handle errors gracefully, e.g., log the error
+      console.error('Error processing admin message:', error);
+    }
+  });*/
 
-              // Implement logic to save the admin message (if needed)
-              // This could involve saving the content, timestamp, room, etc.
-              // await saveAdminMessage(adminmsg); // Example for saving
-
-              io.to("".concat(userid)).emit('chatMessageFromPayoor', content);
-              //io.emit('chatMessageFromPayoor', content);
-            } catch (error) {
-              // Handle errors gracefully, e.g., log the error
-              console.error('Error processing admin message:', error);
-            }
-          case 2:
-          case "end":
-            return _context9.stop();
-        }
-      }, _callee9);
-    }));
-    return function (_x9) {
-      return _ref9.apply(this, arguments);
-    };
-  }());
   socket.on('disconnect', function () {
     //socket.leave(room);
 
@@ -491,7 +312,7 @@ mongoose.connect(process.env.MONGO_URL, {
     if (error) {
       return console.error('Error starting server:', error);
     }
-    // console.log(`Server started on port ${PORT}`);
+    console.log("Server started on port ".concat(PORT));
   });
 })["catch"](function (error) {
   console.error('Error connecting to MongoDB:', error);

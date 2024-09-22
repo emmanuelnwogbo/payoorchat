@@ -16,7 +16,7 @@ const corsOrginArray = [
   'http://localhost:3000',
   'https://dfa1-149-22-81-214.ngrok-free.app',
   'https://chat.payoor.shop',
-  "http://localhost:49192",
+  "http://localhost:50258",
 ]
 
 const io = require('socket.io')(server, {
@@ -40,6 +40,7 @@ import verifyToken from './services/payoor/verifyToken';
 import File from './models/file';
 
 import userRoute from './routes/userRoute';
+import messageRoute from './routes/messageRoute';
 import conversationRoute from './routes/conversationRoute';
 
 import createVerification from './services/twilio/createVerification';
@@ -61,6 +62,7 @@ app.use(express.json());
 
 app.use(userRoute);
 app.use(conversationRoute);
+app.use(messageRoute);
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
@@ -141,6 +143,20 @@ io.on('connection', socket => {
   let room;
 
   socket.on("initConnect", async (jwtData) => {
+    const { jwt } = jwtData;
+
+    console.log(jwt);
+
+    if (jwt === null) {
+      const message = "It seems you aren't signed in. Please send your number to receive an OTP to enable sign-in.";
+
+      io.to(room).emit("unauthenticated", message);
+    } else {
+
+    }
+  })
+
+  /*socket.on("initConnect", async (jwtData) => {
     const { jwt } = jwtData;
 
     // console.log('jwt', jwt)
@@ -302,7 +318,7 @@ io.on('connection', socket => {
       // Handle errors gracefully, e.g., log the error
       console.error('Error processing admin message:', error);
     }
-  });
+  });*/
 
   socket.on('disconnect', () => {
     //socket.leave(room);
@@ -321,7 +337,8 @@ mongoose.connect(process.env.MONGO_URL, {
       if (error) {
         return console.error('Error starting server:', error);
       }
-      // console.log(`Server started on port ${PORT}`);
+
+      console.log(`Server started on port ${PORT}`);
     });
   })
   .catch((error) => {

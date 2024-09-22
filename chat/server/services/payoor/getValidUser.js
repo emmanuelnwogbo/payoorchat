@@ -8,7 +8,6 @@ async function getValidUser(jwt) {
 
         const validUser = await User.findOne({ _id: payload._id });
 
-        //console.log(validUser);
         return validUser;
     } catch (error) {
         console.log(error)

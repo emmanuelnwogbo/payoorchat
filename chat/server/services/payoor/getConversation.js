@@ -9,13 +9,15 @@ async function getConversation(jwt) {
         let page = 1;
         let limit = 20;
 
-        const conversation = await Message.find({ user: payload._id }).sort('-timestamp')
+        const conversation = await Message.find({ user: payload._id })
+            .sort('-timestamp')
             .skip((page - 1) * limit)
-            .limit(Number(limit))
+            .limit(limit)
             .populate('user', 'username');
 
-        //console.log('conversation get:', conversation, 'conversation get:')
-        return conversation;
+        conversation.length = limit;
+
+        return conversation.reverse();
     } catch (error) {
         console.log(error);
         throw error;  // Optionally rethrow the error to handle it elsewhere
@@ -23,3 +25,5 @@ async function getConversation(jwt) {
 }
 
 export default getConversation;
+
+//66ef967b76797cc0e2bd991f

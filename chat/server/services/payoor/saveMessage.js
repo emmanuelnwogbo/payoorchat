@@ -33,13 +33,13 @@ async function saveMessage(msg) {
                 timestamp: timestamp,
                 isAdmin: !isUser
             });
-        }
 
-       // console.log(newMessage);
+            await newMessage.save();
 
-        await newMessage.save();
+            console.log(newMessage)
+        }  
     } catch (error) {
-        console, log(error);
+        console.log(error);
     }
 }
 

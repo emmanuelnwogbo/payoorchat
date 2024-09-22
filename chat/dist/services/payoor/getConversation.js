@@ -27,21 +27,22 @@ function _getConversation() {
           _context.next = 6;
           return Message.find({
             user: payload._id
-          }).sort('-timestamp').skip((page - 1) * limit).limit(Number(limit)).populate('user', 'username');
+          }).sort('-timestamp').skip((page - 1) * limit).limit(limit).populate('user', 'username');
         case 6:
           conversation = _context.sent;
-          return _context.abrupt("return", conversation);
-        case 10:
-          _context.prev = 10;
+          conversation.length = limit;
+          return _context.abrupt("return", conversation.reverse());
+        case 11:
+          _context.prev = 11;
           _context.t0 = _context["catch"](0);
           console.log(_context.t0);
           throw _context.t0;
-        case 14:
+        case 15:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 10]]);
+    }, _callee, null, [[0, 11]]);
   }));
   return _getConversation.apply(this, arguments);
 }
-var _default = exports["default"] = getConversation;
+var _default = exports["default"] = getConversation; //66ef967b76797cc0e2bd991f

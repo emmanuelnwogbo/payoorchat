@@ -53,8 +53,6 @@ conversationRoute.get('/getconversation/admin', /*#__PURE__*/function () {
           }).sort('-timestamp').skip((page - 1) * limit).limit(Number(limit)).populate('user', 'username');
         case 5:
           conversation = _context2.sent;
-          // console.log('conversation:', conversation, 'conversation:')
-
           res.status(200).send({
             conversation: conversation
           });
@@ -85,7 +83,7 @@ conversationRoute.post('/saveconversation', /*#__PURE__*/function () {
             message: 'Invalid input: body must be an array'
           }));
         case 5:
-          payload = (0, _getPayloadFromToken["default"])(jwt); // console.log(body);
+          payload = (0, _getPayloadFromToken["default"])(jwt);
           savePromises = body.map(function (msg) {
             var newMessage = new _message["default"]({
               user: payload._id,
