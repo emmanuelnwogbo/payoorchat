@@ -16,7 +16,7 @@ const corsOrginArray = [
   'http://localhost:3000',
   'https://dfa1-149-22-81-214.ngrok-free.app',
   'https://chat.payoor.shop',
-  "http://localhost:50258",
+  "http://localhost:54785",
 ]
 
 const io = require('socket.io')(server, {

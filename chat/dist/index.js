@@ -36,7 +36,7 @@ var app = express();
 var server = require('http').createServer(app);
 var mongoose = require('mongoose');
 var crypto = require('crypto');
-var corsOrginArray = ['http://localhost:3000', 'https://dfa1-149-22-81-214.ngrok-free.app', 'https://chat.payoor.shop', "http://localhost:50258"];
+var corsOrginArray = ['http://localhost:3000', 'https://dfa1-149-22-81-214.ngrok-free.app', 'https://chat.payoor.shop', "http://localhost:54785"];
 var io = require('socket.io')(server, {
   cors: {
     origin: corsOrginArray,
