@@ -11,6 +11,7 @@ async function getValidUser(jwt) {
         return validUser;
     } catch (error) {
         console.log(error)
+        return { _id: null }
     }
 }
 

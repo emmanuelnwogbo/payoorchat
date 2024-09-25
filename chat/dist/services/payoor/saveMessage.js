@@ -17,28 +17,45 @@ function saveMessage(_x) {
 }
 function _saveMessage() {
   _saveMessage = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(msg) {
-    var jwt, userPhoneNumber, message, isUser, timestamp, isLoggedIn, isAdmin, newMessage, payload, validUser;
+    var jwt, userPhoneNumber, message, isUser, timestamp, isLoggedIn, isAdmin, userid, newMessage, validUser, payload, _validUser;
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
           _context.prev = 0;
-          jwt = msg.jwt, userPhoneNumber = msg.userPhoneNumber, message = msg.message, isUser = msg.isUser, timestamp = msg.timestamp, isLoggedIn = msg.isLoggedIn, isAdmin = msg.isAdmin;
+          jwt = msg.jwt, userPhoneNumber = msg.userPhoneNumber, message = msg.message, isUser = msg.isUser, timestamp = msg.timestamp, isLoggedIn = msg.isLoggedIn, isAdmin = msg.isAdmin, userid = msg.userid;
           if (!isAdmin) {
-            _context.next = 5;
+            _context.next = 12;
             break;
           }
-          _context.next = 13;
-          break;
-        case 5:
-          payload = (0, _getPayloadFromToken["default"])(jwt);
-          _context.next = 8;
+          _context.next = 5;
           return _user["default"].findOne({
-            _id: payload._id
+            _id: userid
           });
-        case 8:
+        case 5:
           validUser = _context.sent;
           newMessage = new _message["default"]({
             user: validUser._id,
+            content: message,
+            userPhoneNumber: validUser.phoneNumber,
+            isLoggedIn: isLoggedIn,
+            isUser: isUser,
+            timestamp: timestamp,
+            isAdmin: !isUser
+          });
+          _context.next = 9;
+          return newMessage.save();
+        case 9:
+          return _context.abrupt("return", newMessage._id);
+        case 12:
+          payload = (0, _getPayloadFromToken["default"])(jwt);
+          _context.next = 15;
+          return _user["default"].findOne({
+            _id: payload._id
+          });
+        case 15:
+          _validUser = _context.sent;
+          newMessage = new _message["default"]({
+            user: _validUser._id,
             content: message,
             userPhoneNumber: userPhoneNumber,
             isLoggedIn: isLoggedIn,
@@ -46,22 +63,22 @@ function _saveMessage() {
             timestamp: timestamp,
             isAdmin: !isUser
           });
-          _context.next = 12;
+          _context.next = 19;
           return newMessage.save();
-        case 12:
-          console.log(newMessage);
-        case 13:
-          _context.next = 18;
+        case 19:
+          return _context.abrupt("return", newMessage._id);
+        case 20:
+          _context.next = 25;
           break;
-        case 15:
-          _context.prev = 15;
+        case 22:
+          _context.prev = 22;
           _context.t0 = _context["catch"](0);
           console.log(_context.t0);
-        case 18:
+        case 25:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 15]]);
+    }, _callee, null, [[0, 22]]);
   }));
   return _saveMessage.apply(this, arguments);
 }

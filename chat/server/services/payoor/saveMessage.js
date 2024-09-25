@@ -12,13 +12,30 @@ async function saveMessage(msg) {
             isUser,
             timestamp,
             isLoggedIn,
-            isAdmin
+            isAdmin,
+            userid
         } = msg;
 
         let newMessage;
 
         if (isAdmin) {
+            const validUser = await User.findOne({ _id: userid });
 
+            newMessage = new Message({
+                user: validUser._id,
+                content: message,
+                userPhoneNumber: validUser.phoneNumber,
+                isLoggedIn: isLoggedIn,
+                isUser: isUser,
+                timestamp: timestamp,
+                isAdmin: !isUser
+            });
+
+            await newMessage.save();
+
+            //console.log(newMessage);
+
+            return newMessage._id;
         } else {
             const payload = getPayloadFromToken(jwt);
 
@@ -36,8 +53,10 @@ async function saveMessage(msg) {
 
             await newMessage.save();
 
-            console.log(newMessage)
-        }  
+            //console.log(newMessage)
+
+            return newMessage._id;
+        }
     } catch (error) {
         console.log(error);
     }

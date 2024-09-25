@@ -34,6 +34,10 @@ var userSchema = new mongoose.Schema({
     type: Boolean,
     "default": false
   },
+  isSeen: {
+    type: Boolean,
+    "default": false
+  },
   tokens: [{
     token: {
       type: String,

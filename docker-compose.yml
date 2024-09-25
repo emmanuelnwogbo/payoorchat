@@ -32,3 +32,10 @@ services:
     build: ./waitlist
     environment:
       - PORT=8081
+
+  admin:
+    container_name: admin
+    restart: always
+    build: ./administration
+    environment:
+      - PORT=8082

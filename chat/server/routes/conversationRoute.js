@@ -15,20 +15,6 @@ conversationRoute.get('/getconversation', async (req, res) => {
     res.status(200).send({ conversation });
 });
 
-conversationRoute.get('/getconversation/admin', async (req, res) => {
-    const { id } = req.query;
-
-    let page = 1;
-    let limit = 20;
-
-    const conversation = await Message.find({ user: id }).sort('-timestamp')
-        .skip((page - 1) * limit)
-        .limit(Number(limit))
-        .populate('user', 'username');
-
-    res.status(200).send({ conversation });
-});
-
 conversationRoute.post('/saveconversation', async (req, res) => {
     try {
         const { jwt } = req.query;

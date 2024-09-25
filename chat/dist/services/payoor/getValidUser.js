@@ -33,7 +33,10 @@ function _getValidUser() {
           _context.prev = 8;
           _context.t0 = _context["catch"](0);
           console.log(_context.t0);
-        case 11:
+          return _context.abrupt("return", {
+            _id: null
+          });
+        case 12:
         case "end":
           return _context.stop();
       }

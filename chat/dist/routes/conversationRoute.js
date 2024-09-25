@@ -38,48 +38,20 @@ conversationRoute.get('/getconversation', /*#__PURE__*/function () {
     return _ref.apply(this, arguments);
   };
 }());
-conversationRoute.get('/getconversation/admin', /*#__PURE__*/function () {
+conversationRoute.post('/saveconversation', /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(req, res) {
-    var id, page, limit, conversation;
+    var jwt, body, payload, savePromises;
     return _regeneratorRuntime().wrap(function _callee2$(_context2) {
       while (1) switch (_context2.prev = _context2.next) {
         case 0:
-          id = req.query.id;
-          page = 1;
-          limit = 20;
-          _context2.next = 5;
-          return _message["default"].find({
-            user: id
-          }).sort('-timestamp').skip((page - 1) * limit).limit(Number(limit)).populate('user', 'username');
-        case 5:
-          conversation = _context2.sent;
-          res.status(200).send({
-            conversation: conversation
-          });
-        case 7:
-        case "end":
-          return _context2.stop();
-      }
-    }, _callee2);
-  }));
-  return function (_x3, _x4) {
-    return _ref2.apply(this, arguments);
-  };
-}());
-conversationRoute.post('/saveconversation', /*#__PURE__*/function () {
-  var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(req, res) {
-    var jwt, body, payload, savePromises;
-    return _regeneratorRuntime().wrap(function _callee3$(_context3) {
-      while (1) switch (_context3.prev = _context3.next) {
-        case 0:
-          _context3.prev = 0;
+          _context2.prev = 0;
           jwt = req.query.jwt;
           body = req.body;
           if (Array.isArray(body)) {
-            _context3.next = 5;
+            _context2.next = 5;
             break;
           }
-          return _context3.abrupt("return", res.status(400).send({
+          return _context2.abrupt("return", res.status(400).send({
             message: 'Invalid input: body must be an array'
           }));
         case 5:
@@ -96,29 +68,29 @@ conversationRoute.post('/saveconversation', /*#__PURE__*/function () {
             });
             return newMessage.save();
           });
-          _context3.next = 9;
+          _context2.next = 9;
           return Promise.all(savePromises);
         case 9:
           res.status(200).send({
             message: 'All messages saved successfully'
           });
-          _context3.next = 16;
+          _context2.next = 16;
           break;
         case 12:
-          _context3.prev = 12;
-          _context3.t0 = _context3["catch"](0);
-          console.error('Error saving conversation:', _context3.t0);
+          _context2.prev = 12;
+          _context2.t0 = _context2["catch"](0);
+          console.error('Error saving conversation:', _context2.t0);
           res.status(500).send({
             message: 'An error occurred while saving the conversation'
           });
         case 16:
         case "end":
-          return _context3.stop();
+          return _context2.stop();
       }
-    }, _callee3, null, [[0, 12]]);
+    }, _callee2, null, [[0, 12]]);
   }));
-  return function (_x5, _x6) {
-    return _ref3.apply(this, arguments);
+  return function (_x3, _x4) {
+    return _ref2.apply(this, arguments);
   };
 }());
 var _default = exports["default"] = conversationRoute;

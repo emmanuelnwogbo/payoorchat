@@ -22,12 +22,16 @@ function _joinRoom() {
           _context.next = 2;
           return _room["default"].find({
             userid: userid
-          }).sort({
-            updated_at: -1
-          }).limit(1).populate('userid').exec();
+          });
         case 2:
           rooms = _context.sent;
-          return _context.abrupt("return", rooms[0]);
+          /*.sort({ updated_at: -1 })
+          .limit(1)
+          .populate('userid')
+          .exec();
+           return rooms[0];*/
+
+          console.log(rooms);
         case 4:
         case "end":
           return _context.stop();

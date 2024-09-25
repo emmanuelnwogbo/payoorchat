@@ -1,7 +1,5 @@
 import express from 'express';
 
-import Message from '../models/message';
-
 import validatePhoneNumber from '../services/payoor/validatePhoneNumber';
 import createVerificationTest from '../services/payoor/test/createVerification';
 import createVerificationCheckTest from '../services/payoor/test/createVerificationCheck';
@@ -9,6 +7,7 @@ import generateJWT from '../services/payoor/generateJWT';
 import saveUserName from '../services/payoor/saveUserName';
 import getValidUser from '../services/payoor/getValidUser';
 import saveMessage from '../services/payoor/saveMessage';
+import processRequest from '../services/payoor/processRequest';
 
 const messageRoute = express();
 
@@ -92,24 +91,33 @@ messageRoute.post('/message', async (req, res) => {
         }
 
         if (inputType === 'isLoggedInInput') {
-            const usermsg = message;
-
             const { _id, username, phoneNumber } = await getValidUser(jwt);
-            await saveMessage({
-                message,
-                userPhoneNumber: phoneNumber,
-                isUser,
-                jwt,
-                timestamp,
-                inputType,
-                isLoggedIn
-            });
 
-            res.status(200).json({
-                message: `Hello ${username}, you're order is being processed`,
-                type: "orderconfirmation",
-                token: jwt,
-            });
+            if (_id === null) {
+                res.status(200).json({
+                    message: `Looks like you aren't signed in. Sign in with your phone number`,
+                    type: "unauthenticated",
+                    token: "",
+                });
+            } else {
+                const messageId = await saveMessage({
+                    message,
+                    userPhoneNumber: phoneNumber,
+                    isUser,
+                    jwt,
+                    timestamp,
+                    inputType,
+                    isLoggedIn
+                });
+
+                processRequest(messageId);
+
+                res.status(200).json({
+                    message: `Hello ${username}, you're order is being processed`,
+                    type: "orderconfirmation",
+                    token: jwt,
+                });
+            }
         }
 
     } catch (error) {
