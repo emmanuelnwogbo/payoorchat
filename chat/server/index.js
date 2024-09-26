@@ -1,6 +1,7 @@
 if (process.env.NODE_ENV !== 'production') {
   require("dotenv").config();
 }
+
 import "regenerator-runtime";
 const express = require('express');
 const app = express();
@@ -19,6 +20,7 @@ import File from './models/file';
 import adminRoute from './routes/adminRoute';
 import messageRoute from './routes/messageRoute';
 import conversationRoute from './routes/conversationRoute';
+import authRoute from './routes/authRoute';
 
 import corsOrginArray from './corsOriginArray';
 import { initSocket } from './socketInit';
@@ -43,6 +45,7 @@ app.use(express.json());
 app.use(adminRoute);
 app.use(conversationRoute);
 app.use(messageRoute);
+app.use(authRoute);
 
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
