@@ -134,7 +134,24 @@
 
         &--right {
             display: flex;
-            flex-direction: column;
+            flex-direction: column; 
+            line-height: #{scaleValue(10)};
+        }
+
+        &--username {
+
+        }
+
+        &--details {
+
+            & span {
+
+                &.unread {
+                    opacity: .9;
+                    color: $primary-color;
+                    font-size: #{scaleValue(8)};
+                }
+            }
         }
 
         & span {

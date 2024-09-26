@@ -17,8 +17,19 @@
                 <div>{{ capitalizeFirstLetter(user.username) }}</div>
               </figure>
               <div class="chat__usercard--right">
-                <span>{{ user.username }}</span>
-                <span>{{ user.preview }}</span>
+                <div class="chat__usercard--username">
+                  <span>{{ user.username }}</span>
+                </div>
+                <div class="chat__usercard--details">
+                  <span class="unread" v-if="user.unreadMessages.length"
+                    >{{ user.unreadMessages.length }}
+                    {{
+                      user.unreadMessages.length > 1
+                        ? "unread Messages"
+                        : "unread Message"
+                    }}</span
+                  >
+                </div>
               </div>
             </div>
           </div>
@@ -26,10 +37,10 @@
           <!-- Chat conversation -->
           <div class="chat__right chat__section" v-if="state.clickedUser">
             <div class="chat__right--header">
-              <figure class="chat__right--img">
+              <figure class="chat__right--img" v-if="state.clickedUser.username">
                 <div>{{ capitalizeFirstLetter(state.clickedUser.username) }}</div>
               </figure>
-              <div class="chat__right--user">
+              <div class="chat__right--user" v-if="state.clickedUser.username">
                 <div class="chat__right--name">
                   <span>{{ state.clickedUser.username }}</span>
                   <span>{{ state.clickedUser.phoneNumber }}</span>
@@ -195,7 +206,7 @@ export default {
       }
     };
 
-    const getUsers = () => {
+    const getUsers = async () => {
       const token = localStorage.getItem("adminToken");
 
       fetch(`${serverUrl}/admin/getusers`, {
@@ -207,28 +218,77 @@ export default {
       })
         .then((response) => response.json()) // assuming the server responds with JSON
         .then((data) => {
-          console.log(data);
+          //console.log(data);
           state.users = [...state.users, ...data];
 
-          console.log(state.users, "yello");
+          //console.log(state.users, "yello");
 
-          state.clickedUser = state.users[0];
+          //state.clickedUser = state.users[0];
 
           console.log(state.users, state.clickedUser);
         })
         .catch((error) => console.error("Error:", error));
     };
 
+    const getUserUnreadState = async (userid) => {
+      const token = localStorage.getItem("adminToken");
+
+      fetch(`${serverUrl}/admin/getuserunreadstate?userid=${userid}`, {
+        method: "GET", // or 'POST', 'PUT', etc. depending on your needs
+        headers: {
+          "Content-Type": "application/json",
+          "x-auth": token, // This is where we include the token for adminAuth middleware
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          const { unreadMessages, userid } = data;
+
+          setUserUnreadState(unreadMessages, userid);
+        })
+        .catch((error) => console.error("Error:", error));
+    };
+
+    const setUserUnreadState = (unreadMessages, userid) => {
+      const userIndex = state.users.findIndex((user) => `${user._id}` === `${userid}`);
+
+      const updatedUser = {
+        ...state.users[userIndex],
+        unreadMessages: Array.isArray(unreadMessages) ? unreadMessages : [],
+      };
+
+      const updatedUsers = [
+        ...state.users.slice(0, userIndex),
+        updatedUser,
+        ...state.users.slice(userIndex + 1),
+      ];
+
+      state.users = updatedUsers;
+    };
+
     const selectUser = (id) => {
       state.clickedUser = state.users.find((user) => user._id === id);
 
-      const user = state.users.find((user) => user._id === id);
-
-      console.log("user:", user);
-
-      state.socket.emit("isAdminJoinRoom", id);
+      setMessagesRead(id);
 
       getConversation(id);
+    };
+
+    const setMessagesRead = async (id) => {
+      const token = localStorage.getItem("adminToken");
+
+      setUserUnreadState([], id);
+
+      fetch(`${serverUrl}/admin/setmessagesread?userid=${id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-auth": token, // This is where we include the token for adminAuth middleware
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {})
+        .catch((error) => console.error("Error:", error));
     };
 
     const sanitizeId = (id) => {
@@ -278,9 +338,19 @@ export default {
       state.socket.on("newmessage", (data) => {
         const { content, isUser, timestamp, username, userid } = data.msg;
 
-        console.log(content, isUser, timestamp, username, userid);
+        //console.log(content, isUser, timestamp, username, userid);
 
-        receiveMessage({ content, username, userid });
+        if (state.clickedUser._id && `${state.clickedUser._id}` === `${userid}`) {
+          receiveMessage({ content, username, userid });
+
+          setMessagesRead(`${userid}`);
+        }
+      });
+
+      state.socket.on("updateunread", (data) => {
+        const { userid } = data;
+
+        getUserUnreadState(userid);
       });
 
       state.socket.on("user_typing", (data) => {

@@ -163,6 +163,8 @@ adminRoute.get('/admin/getconversation', _adminAuth["default"], /*#__PURE__*/fun
           }).sort('-timestamp').skip((page - 1) * limit).limit(limit).populate('user', 'username');
         case 5:
           conversation = _context5.sent;
+          //console.log(conversation);
+
           conversation.length = limit;
           res.status(200).send({
             conversation: conversation.reverse()
@@ -215,6 +217,86 @@ adminRoute.post('/admin/message', _adminAuth["default"], /*#__PURE__*/function (
   }));
   return function (_x11, _x12) {
     return _ref6.apply(this, arguments);
+  };
+}());
+adminRoute.get('/admin/getuserunreadstate', _adminAuth["default"], /*#__PURE__*/function () {
+  var _ref7 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee7(req, res) {
+    var userid, useritem, unreadMessages;
+    return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+      while (1) switch (_context7.prev = _context7.next) {
+        case 0:
+          _context7.prev = 0;
+          userid = req.query.userid;
+          _context7.next = 4;
+          return _user["default"].findById({
+            _id: userid
+          });
+        case 4:
+          useritem = _context7.sent;
+          unreadMessages = useritem.unreadMessages;
+          res.status(200).json({
+            unreadMessages: unreadMessages,
+            userid: userid
+          });
+          _context7.next = 12;
+          break;
+        case 9:
+          _context7.prev = 9;
+          _context7.t0 = _context7["catch"](0);
+          console.log(_context7.t0);
+        case 12:
+        case "end":
+          return _context7.stop();
+      }
+    }, _callee7, null, [[0, 9]]);
+  }));
+  return function (_x13, _x14) {
+    return _ref7.apply(this, arguments);
+  };
+}());
+adminRoute.post('/admin/setmessagesread', _adminAuth["default"], /*#__PURE__*/function () {
+  var _ref8 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee8(req, res) {
+    var userid, updatedUser;
+    return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+      while (1) switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
+          userid = req.query.userid;
+          _context8.next = 4;
+          return _user["default"].findByIdAndUpdate(userid, {
+            $set: {
+              unreadMessages: []
+            }
+          }, {
+            "new": true,
+            useFindAndModify: false
+          });
+        case 4:
+          updatedUser = _context8.sent;
+          if (updatedUser) {
+            _context8.next = 8;
+            break;
+          }
+          console.log('User not found');
+          return _context8.abrupt("return", null);
+        case 8:
+          res.status(200).json({
+            updatedUser: updatedUser
+          });
+          _context8.next = 14;
+          break;
+        case 11:
+          _context8.prev = 11;
+          _context8.t0 = _context8["catch"](0);
+          console.log(_context8.t0);
+        case 14:
+        case "end":
+          return _context8.stop();
+      }
+    }, _callee8, null, [[0, 11]]);
+  }));
+  return function (_x15, _x16) {
+    return _ref8.apply(this, arguments);
   };
 }());
 var _default = exports["default"] = adminRoute;

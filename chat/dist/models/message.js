@@ -29,6 +29,10 @@ var messageSchema = new mongoose.Schema({
     type: Boolean,
     required: true
   },
+  isSeen: {
+    type: Boolean,
+    "default": false
+  },
   timestamp: {
     type: Date,
     "default": Date.now,

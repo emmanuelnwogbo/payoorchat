@@ -30,11 +30,12 @@ var userSchema = new mongoose.Schema({
     type: [String],
     "default": ['user']
   },
-  isOnline: {
-    type: Boolean,
-    "default": false
+  unreadMessages: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'Message',
+    "default": []
   },
-  isSeen: {
+  isOnline: {
     type: Boolean,
     "default": false
   },

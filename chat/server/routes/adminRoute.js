@@ -82,6 +82,8 @@ adminRoute.get('/admin/getconversation', adminAuth, async (req, res) => {
         .limit(limit)
         .populate('user', 'username');
 
+    //console.log(conversation);
+
     conversation.length = limit;
 
     res.status(200).send({ conversation: conversation.reverse() });
@@ -106,6 +108,42 @@ adminRoute.post('/admin/message', adminAuth, async (req, res) => {
             message: `Message sent to ${user.username}`,
             type: "adminmessage",
         });
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+adminRoute.get('/admin/getuserunreadstate', adminAuth, async (req, res) => {
+    try {
+        const { userid } = req.query;
+
+        const useritem = await User.findById({ _id: userid });
+
+        const { unreadMessages } = useritem;
+
+        res.status(200).json({ unreadMessages, userid });
+    } catch (error) {
+        console.log(error);
+    }
+});
+
+adminRoute.post('/admin/setmessagesread', adminAuth, async (req, res) => {
+    try {
+        const { userid } = req.query;
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userid,
+            { $set: { unreadMessages: [] } },
+            { new: true, useFindAndModify: false }
+        );
+
+        if (!updatedUser) {
+            console.log('User not found');
+            return null;
+        }
+
+        res.status(200).json({ updatedUser });
+
     } catch (error) {
         console.log(error);
     }

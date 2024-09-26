@@ -8,6 +8,7 @@ import saveUserName from '../services/payoor/saveUserName';
 import getValidUser from '../services/payoor/getValidUser';
 import saveMessage from '../services/payoor/saveMessage';
 import processRequest from '../services/payoor/processRequest';
+import trackUnread from '../services/payoor/trackUnread';
 
 const messageRoute = express();
 
@@ -109,6 +110,8 @@ messageRoute.post('/message', async (req, res) => {
                     inputType,
                     isLoggedIn
                 });
+
+                trackUnread(messageId);
 
                 processRequest(messageId);
 
