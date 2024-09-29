@@ -155,17 +155,15 @@ adminRoute.get('/admin/getconversation', _adminAuth["default"], /*#__PURE__*/fun
       while (1) switch (_context5.prev = _context5.next) {
         case 0:
           id = req.query.id;
+          console.log(id);
           page = 1;
           limit = 20;
-          _context5.next = 5;
+          _context5.next = 6;
           return _message["default"].find({
             user: id
           }).sort('-timestamp').skip((page - 1) * limit).limit(limit).populate('user', 'username');
-        case 5:
+        case 6:
           conversation = _context5.sent;
-          //console.log(conversation);
-
-          conversation.length = limit;
           res.status(200).send({
             conversation: conversation.reverse()
           });
@@ -297,6 +295,40 @@ adminRoute.post('/admin/setmessagesread', _adminAuth["default"], /*#__PURE__*/fu
   }));
   return function (_x15, _x16) {
     return _ref8.apply(this, arguments);
+  };
+}());
+adminRoute["delete"]('/admin/deleteallusers', _adminAuth["default"], /*#__PURE__*/function () {
+  var _ref9 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee9(req, res) {
+    var result;
+    return _regeneratorRuntime().wrap(function _callee9$(_context9) {
+      while (1) switch (_context9.prev = _context9.next) {
+        case 0:
+          _context9.prev = 0;
+          _context9.next = 3;
+          return _user["default"].deleteMany({});
+        case 3:
+          result = _context9.sent;
+          res.status(200).json({
+            message: "All users deleted successfully",
+            deletedCount: result.deletedCount
+          });
+          _context9.next = 11;
+          break;
+        case 7:
+          _context9.prev = 7;
+          _context9.t0 = _context9["catch"](0);
+          console.error('Error deleting users:', _context9.t0);
+          res.status(500).json({
+            error: "An error occurred while deleting users"
+          });
+        case 11:
+        case "end":
+          return _context9.stop();
+      }
+    }, _callee9, null, [[0, 7]]);
+  }));
+  return function (_x17, _x18) {
+    return _ref9.apply(this, arguments);
   };
 }());
 var _default = exports["default"] = adminRoute;

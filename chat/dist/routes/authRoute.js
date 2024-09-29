@@ -14,7 +14,7 @@ function _asyncToGenerator(n) { return function () { var t = this, e = arguments
 var authRoute = (0, _express["default"])();
 authRoute.get('/auth/getuser', /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(req, res) {
-    var jwt, _yield$getValidUser, _id, phoneNumber;
+    var jwt, _yield$getValidUser, _id, phoneNumber, username;
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
@@ -26,26 +26,28 @@ authRoute.get('/auth/getuser', /*#__PURE__*/function () {
           _yield$getValidUser = _context.sent;
           _id = _yield$getValidUser._id;
           phoneNumber = _yield$getValidUser.phoneNumber;
+          username = _yield$getValidUser.username;
           if (_id && phoneNumber) {
             res.status(200).json({
-              authenticated: true
+              authenticated: true,
+              username: username
             });
           } else {
             res.status(404).json({
               authenticated: false
             });
           }
-          _context.next = 13;
+          _context.next = 14;
           break;
-        case 10:
-          _context.prev = 10;
+        case 11:
+          _context.prev = 11;
           _context.t0 = _context["catch"](0);
           console.log(_context.t0);
-        case 13:
+        case 14:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 10]]);
+    }, _callee, null, [[0, 11]]);
   }));
   return function (_x, _x2) {
     return _ref.apply(this, arguments);

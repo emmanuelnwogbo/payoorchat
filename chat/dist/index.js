@@ -52,7 +52,7 @@ app.use(function (req, res, next) {
   }
   next();
 });
-var PORT = process.env.PORT || 3030;
+var PORT = process.env.PORT;
 var FLUTTER_WEB_APP = _path["default"].join(__dirname, '../public', 'web');
 app.use(express["static"](FLUTTER_WEB_APP));
 app.use(_bodyParser["default"].json({

@@ -307,7 +307,6 @@ export default {
       })
         .then((response) => response.json())
         .then((data) => {
-          console.log(data.conversation);
           state.messages = data.conversation;
         })
         .catch((error) => console.error("Error:", error));

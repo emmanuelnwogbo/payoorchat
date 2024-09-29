@@ -4,5 +4,5 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports["default"] = void 0;
-var corsOriginArray = ['http://localhost:3000', 'https://chat.payoor.shop', 'https://admin.payoor.shop', "http://localhost:62718"];
+var corsOriginArray = ['http://localhost:3000', 'https://chat.payoor.shop', 'https://admin.payoor.shop', "http://localhost:59913"];
 var _default = exports["default"] = corsOriginArray;

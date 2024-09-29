@@ -20,27 +20,58 @@ function _getValidUser() {
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
-          _context.prev = 0;
+          if (jwt) {
+            _context.next = 3;
+            break;
+          }
+          console.error('No JWT provided');
+          return _context.abrupt("return", {
+            _id: null,
+            phoneNumber: null
+          });
+        case 3:
+          _context.prev = 3;
           payload = (0, _getPayloadFromToken["default"])(jwt);
-          _context.next = 4;
+          if (!(!payload || !payload._id)) {
+            _context.next = 8;
+            break;
+          }
+          console.error('Invalid token payload');
+          return _context.abrupt("return", {
+            _id: null,
+            phoneNumber: null
+          });
+        case 8:
+          _context.next = 10;
           return _user["default"].findOne({
             _id: payload._id
           });
-        case 4:
+        case 10:
           validUser = _context.sent;
-          return _context.abrupt("return", validUser);
-        case 8:
-          _context.prev = 8;
-          _context.t0 = _context["catch"](0);
-          console.log(_context.t0);
+          if (validUser) {
+            _context.next = 14;
+            break;
+          }
+          console.error('User not found');
           return _context.abrupt("return", {
-            _id: null
+            _id: null,
+            phoneNumber: null
           });
-        case 12:
+        case 14:
+          return _context.abrupt("return", validUser);
+        case 17:
+          _context.prev = 17;
+          _context.t0 = _context["catch"](3);
+          console.error('Error in getValidUser:', _context.t0);
+          return _context.abrupt("return", {
+            _id: null,
+            phoneNumber: null
+          });
+        case 21:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 8]]);
+    }, _callee, null, [[3, 17]]);
   }));
   return _getValidUser.apply(this, arguments);
 }

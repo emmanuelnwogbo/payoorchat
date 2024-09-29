@@ -24,6 +24,8 @@ conversationRoute.post('/saveconversation', async (req, res) => {
             return res.status(400).send({ message: 'Invalid input: body must be an array' });
         }
 
+        console.log(body);
+
         const payload = getPayloadFromToken(jwt);
 
         const savePromises = body.map(msg => {

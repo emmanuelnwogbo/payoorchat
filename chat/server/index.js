@@ -57,7 +57,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const PORT = process.env.PORT || 3030;
+const PORT = process.env.PORT;
 const FLUTTER_WEB_APP = path.join(__dirname, '../public', 'web');
 app.use(express.static(FLUTTER_WEB_APP));
 

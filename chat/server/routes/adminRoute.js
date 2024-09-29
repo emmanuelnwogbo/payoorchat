@@ -73,6 +73,8 @@ adminRoute.get('/admin/getuser', adminAuth, async (req, res) => {
 adminRoute.get('/admin/getconversation', adminAuth, async (req, res) => {
     const { id } = req.query;
 
+    console.log(id);
+
     let page = 1;
     let limit = 20;
 
@@ -81,10 +83,6 @@ adminRoute.get('/admin/getconversation', adminAuth, async (req, res) => {
         .skip((page - 1) * limit)
         .limit(limit)
         .populate('user', 'username');
-
-    //console.log(conversation);
-
-    conversation.length = limit;
 
     res.status(200).send({ conversation: conversation.reverse() });
 });
@@ -147,6 +145,21 @@ adminRoute.post('/admin/setmessagesread', adminAuth, async (req, res) => {
     } catch (error) {
         console.log(error);
     }
-})
+});
+
+adminRoute.delete('/admin/deleteallusers', adminAuth, async (req, res) => {
+    try {
+        const result = await User.deleteMany({});
+
+        res.status(200).json({
+            message: "All users deleted successfully",
+            deletedCount: result.deletedCount
+        });
+    } catch (error) {
+        console.error('Error deleting users:', error);
+        res.status(500).json({ error: "An error occurred while deleting users" });
+    }
+});
+
 
 export default adminRoute;

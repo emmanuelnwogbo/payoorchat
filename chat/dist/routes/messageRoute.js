@@ -105,7 +105,8 @@ messageRoute.post('/message', /*#__PURE__*/function () {
             res.status(200).json({
               message: "Greetings ".concat(_username2, ", I'm here to accept your orders"),
               type: "authenticated",
-              token: latestToken
+              token: latestToken,
+              username: _username2
             });
           }
         case 31:

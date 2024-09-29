@@ -55,6 +55,7 @@ conversationRoute.post('/saveconversation', /*#__PURE__*/function () {
             message: 'Invalid input: body must be an array'
           }));
         case 5:
+          console.log(body);
           payload = (0, _getPayloadFromToken["default"])(jwt);
           savePromises = body.map(function (msg) {
             var newMessage = new _message["default"]({
@@ -68,26 +69,26 @@ conversationRoute.post('/saveconversation', /*#__PURE__*/function () {
             });
             return newMessage.save();
           });
-          _context2.next = 9;
+          _context2.next = 10;
           return Promise.all(savePromises);
-        case 9:
+        case 10:
           res.status(200).send({
             message: 'All messages saved successfully'
           });
-          _context2.next = 16;
+          _context2.next = 17;
           break;
-        case 12:
-          _context2.prev = 12;
+        case 13:
+          _context2.prev = 13;
           _context2.t0 = _context2["catch"](0);
           console.error('Error saving conversation:', _context2.t0);
           res.status(500).send({
             message: 'An error occurred while saving the conversation'
           });
-        case 16:
+        case 17:
         case "end":
           return _context2.stop();
       }
-    }, _callee2, null, [[0, 12]]);
+    }, _callee2, null, [[0, 13]]);
   }));
   return function (_x3, _x4) {
     return _ref2.apply(this, arguments);

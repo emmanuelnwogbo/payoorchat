@@ -87,6 +87,7 @@ messageRoute.post('/message', async (req, res) => {
                     message: `Greetings ${username}, I'm here to accept your orders`,
                     type: "authenticated",
                     token: latestToken,
+                    username
                 });
             }
         }

@@ -8,11 +8,12 @@ authRoute.get('/auth/getuser', async (req, res) => {
     try {
         const { jwt } = req.query;
 
-        const { _id, phoneNumber } = await getValidUser(jwt);
+        const { _id, phoneNumber, username } = await getValidUser(jwt);
 
         if (_id && phoneNumber) {
             res.status(200).json({
                 authenticated: true,
+                username
             });
         } else {
             res.status(404).json({
