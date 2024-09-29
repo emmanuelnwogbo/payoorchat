@@ -148,7 +148,7 @@ messageRoute.post('/message', /*#__PURE__*/function () {
           (0, _trackUnread["default"])(messageId);
           (0, _processRequest["default"])(messageId);
           res.status(200).json({
-            message: "Hello ".concat(_username3, ", you're order is being processed"),
+            //message: `Hello ${username}, you're order is being processed`,
             type: "orderconfirmation",
             token: jwt
           });

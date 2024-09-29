@@ -117,7 +117,7 @@ messageRoute.post('/message', async (req, res) => {
                 processRequest(messageId);
 
                 res.status(200).json({
-                    message: `Hello ${username}, you're order is being processed`,
+                    //message: `Hello ${username}, you're order is being processed`,
                     type: "orderconfirmation",
                     token: jwt,
                 });
