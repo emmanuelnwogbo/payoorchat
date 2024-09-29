@@ -39211,7 +39211,7 @@ Gs(a){this.ab(new A.YD(this,a))},
 aki(a){var s,r,q,p,o,n,m,l,k,j
 try{s=B.aD.QF(0,a,null)
 n=A.cn(J.ay(s,"message"))
-r=n==null?"":n
+r=n==null?"empty":n
 m=A.cn(J.ay(s,"type"))
 q=m==null?"":m
 l=A.cn(J.ay(s,"token"))
@@ -39310,7 +39310,7 @@ break
 case 7:o.Gs(!1)
 i=m
 l=o.aki(A.X_(A.WN(i.e).c.a.h(0,"charset")).cX(0,i.w))
-if(J.ay(l,"message").length!==0)o.xO(J.ay(l,"message"))
+if(J.ay(l,"message")!=="empty")o.xO(J.ay(l,"message"))
 if(J.ay(l,"type")==="unauthenticated")o.ab(new A.Yq(o))
 if(J.ay(l,"type")==="pendingotp")o.ab(new A.Yr(o))
 if(J.ay(l,"type")==="receivedotp")o.ab(new A.Ys(o,l))
